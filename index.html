@@ -71,10 +71,23 @@ body.touch #mobile-buttons { display: flex; }
   background: rgba(10, 16, 38, 0.75); font-size: 13px;
 }
 #hud-bottom-left { position: absolute; left: 14px; bottom: 14px; width: min(280px, 44vw); }
+#exp-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+#lv-badge {
+  font-size: 11px; padding: 2px 8px; border-radius: 8px; white-space: nowrap;
+  background: rgba(10, 16, 38, 0.75); border: 1px solid rgba(87, 255, 169, 0.5); color: #7dffd4;
+}
+#exp-bar { flex: 1; height: 10px; border-radius: 5px; background: rgba(10, 30, 24, 0.8); border: 1px solid rgba(87, 255, 169, 0.45); overflow: hidden; }
+#exp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #2fe08a, #7dffd4); transform-origin: left; transform: scaleX(0); }
 #hp-wrap { position: relative; }
 #hp-bar { height: 14px; border-radius: 7px; background: rgba(20, 16, 40, 0.8); border: 1px solid rgba(167, 139, 255, 0.55); overflow: hidden; }
 #hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #6a5bff, #a78bff); transform-origin: left; transform: scaleX(1); }
 #hp-text { position: absolute; left: 0; right: 0; top: -1px; text-align: center; font-size: 11px; line-height: 14px; color: #fff; text-shadow: 0 0 3px #000; }
+#mate-bar { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; max-width: 300px; }
+#mate-bar:empty { display: none; } /* 无队友时隐藏（spec 5.5.1 规则 11） */
+.mate-chip {
+  font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap;
+  background: rgba(157, 180, 255, 0.12); border: 1px solid rgba(157, 180, 255, 0.5); color: #b8c7ff;
+}
 #buff-bar { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; max-width: 300px; }
 .buff-chip {
   font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap;
@@ -222,6 +235,9 @@ body.touch #mobile-buttons { display: flex; }
 @media (max-width: 600px) {
   .hud-chip { font-size: 12px; padding: 3px 9px; }
   #hud-bottom-left { width: min(210px, 46vw); bottom: 96px; }
+  #exp-wrap { gap: 6px; margin-bottom: 5px; }
+  #lv-badge { font-size: 10px; padding: 1px 6px; }
+  #exp-bar { height: 8px; }
   #weapon-slots { bottom: 14px; }
   .weapon-slot { width: 76px; height: 54px; }
   #mobile-buttons { bottom: 148px; }
@@ -258,10 +274,15 @@ body.touch #mobile-buttons { display: flex; }
       <button id="btn-pause">‖</button>
     </div>
     <div id="hud-bottom-left">
+      <div id="exp-wrap">
+        <span id="lv-badge">Lv.1</span>
+        <div id="exp-bar"><div id="exp-fill"></div></div>
+      </div>
       <div id="hp-wrap">
         <div id="hp-bar"><div id="hp-fill"></div></div>
         <div id="hp-text">100/100</div>
       </div>
+      <div id="mate-bar"></div>
       <div id="buff-bar"></div>
     </div>
     <div id="weapon-slots">
@@ -338,7 +359,7 @@ body.touch #mobile-buttons { display: flex; }
  * 霓虹竞技场 · 俯视角生存闯关（单文件实现，零外部依赖）
  * 模块依赖序：CONFIG → Utils → Storage → AudioSys → Input → World
  *           → Combat → EnemyAI → BossAI → LevelGen → DropBuff
- *           → Render → UI → Game
+ *           → Growth → Mates → Render → UI → Game
  * 全部可调参数集中于 CONFIG（调整任一参数无需修改逻辑代码）
  * ============================================================ */
 window.GAME = {};
@@ -360,6 +381,16 @@ GAME.CONFIG = (function () {
       invincibleTime: 0.5,   // 受击无敌帧时长（双重防止单帧多次扣血）
       pickupRadius: 60,      // 基础拾取半径
       magnetFactor: 1.5      // 吸附动画触发半径倍数
+    },
+
+    /* 升级成长（经验球与等级，spec 6.1）：10% 掉率 × 5 经验 ≈ 每击杀 0.5 经验，
+       约 30 击杀升 1 级；thresholdStep 1.22 使后期升级减速但每级收益恒定 */
+    growth: {
+      initialLevel: 1,                                                // 初始等级
+      expOrbValue: 5,                                                 // 每颗经验球经验值
+      thresholdBase: 15,                                              // 阈值曲线基数（1→2 级需 15 经验）
+      thresholdStep: 1.22,                                            // 阈值曲线公比（逐级 +22%）
+      levelBonus: { atk: 0.04, aspd: 0.02, speed: 0.015, maxhp: 10 } // 每级属性收益
     },
 
     /* 武器定义：伤害/冷却/范围/特效/音效（三武器差异化，spec 6.2） */
@@ -393,7 +424,11 @@ GAME.CONFIG = (function () {
       angleTolerance: 0.12,  // 扇形判定的角度容差（容纳敌人自身半径，弧度）
       knockDecay: 12,        // 击退速度指数衰减系数
       minCooldown: 0.15,     // 攻速增益下的冷却下限
-      bulletMargin: 60       // 子弹出界回收的边界外余量
+      bulletMargin: 60,      // 子弹出界回收的边界外余量
+      /* 自动瞄准（决策 D3）：窗口过短会抢占手动方向、过长则桌面端自动瞄准不可达，1.2s 为平衡值 */
+      autoAim: { mouseActiveWindow: 1200 },
+      /* 清关清弹开关：清关判定成立时清除全部敌方子弹（仅作紧急回退用） */
+      clearEnemyBulletsOnClear: true
     },
 
     /* 敌人定义与成长曲线（spec 6.3） */
@@ -484,9 +519,34 @@ GAME.CONFIG = (function () {
         bossDamageRatio: 0.05, // 对 Boss 固定伤害比例 5% 最大生命（spec 6.2.7）
         bossCooldown: 2.0      // 对 Boss 触发冷却秒数（spec 6.2.8）
       },
+      /* 三类新掉落物（与 buffs/caps/choice 平级；三路判定相互独立，spec 6.5） */
+      expOrb:  { dropRate: 0.10 },                   // 经验球：普通敌人 10% 概率
+      healPack: { dropRate: 0.01, healRatio: 0.30 }, // 血包：1% 概率，回复 30% 最大生命
+      mate:    { dropRate: 0.30, spawnOffset: 12 },  // 队友：Boss 30% 概率 + 多掉落错位距离
       weaponPool: ['knife', 'spear', 'pistol'],
       bossDropOffset: 30, // Boss 掉落物错开距离
       maxDrops: 24
+    },
+
+    /* 队友行为参数（无生命纯辅助实体，数量无上限，spec 6.4） */
+    mates: {
+      typeWeights: { support: 45, combat: 55 }, // 类型权重：增益型 45% / 战斗型 55%
+      radius: 12,                // 绘制半径（无生命不参与碰撞）
+      followRadius: 70,          // 队形环绕半径（跟随距离）
+      catchUpSpeed: 1.15,        // 追赶速度系数（相对玩家速度，追赶不掉队）
+      maxLagDist: 300,           // 超距钳制回归阈值（防永久脱离/走出竞技场）
+      goldenAngle: 2.39996,      // 黄金角弧度（137.5°，任意数量自然散开无需重排）
+      combat: {                  // 战斗型协战参数
+        damage: 12, fireInterval: 0.9,
+        bulletSpeed: 520, bulletRadius: 4,
+        bulletLife: 1.0, retryCd: 0.1
+      },
+      supportBonus: {            // 增益型随机增益池（多名同类效果叠加）
+        atk:   { value: 0.08, weight: 1 },
+        speed: { value: 0.06, weight: 1 },
+        maxhp: { value: 15,  weight: 1 },
+        aspd:  { value: 0.05, weight: 1 }
+      }
     },
 
     /* 实体数量上限（spec 4.1.2） */
@@ -518,7 +578,19 @@ GAME.CONFIG = (function () {
                     { src: 'tone',  wave: 'square',   f0: 55,  f1: 55,  dur: 0.12, vol: 0.40, delay: 0.18 }],
         /* 秒杀触发：高频上扬 + 短斩噪声的"斩击感"（spec 5.3.1 规则 8） */
         ikill:    [{ src: 'tone',  wave: 'sine',     f0: 1320, f1: 2200, dur: 0.16, vol: 0.30 },
-                    { src: 'noise', wave: 'highpass', f0: 2600, f1: 900,  dur: 0.12, vol: 0.18 }]
+                    { src: 'noise', wave: 'highpass', f0: 2600, f1: 900,  dur: 0.12, vol: 0.18 }],
+        /* 成长/队友事件音效（tone/noise 原子组合，AudioSys 零改动）：
+           levelup 双音阶上行琶音（听感区别于 pickup）/ expOrb 短促单音上扬 /
+           heal 柔和双音 / mateGet 三音琶音（伙伴入场仪式感） */
+        levelup:  [{ src: 'tone', wave: 'sine',     f0: 523, f1: 523, dur: 0.10, vol: 0.26 },
+                    { src: 'tone', wave: 'sine',     f0: 659, f1: 659, dur: 0.10, vol: 0.26, delay: 0.10 },
+                    { src: 'tone', wave: 'sine',     f0: 784, f1: 784, dur: 0.16, vol: 0.28, delay: 0.20 }],
+        expOrb:   [{ src: 'tone', wave: 'sine',     f0: 740, f1: 990, dur: 0.08, vol: 0.18 }],
+        heal:     [{ src: 'tone', wave: 'sine',     f0: 440, f1: 440, dur: 0.10, vol: 0.20 },
+                    { src: 'tone', wave: 'sine',     f0: 660, f1: 660, dur: 0.12, vol: 0.18, delay: 0.09 }],
+        mateGet:  [{ src: 'tone', wave: 'triangle', f0: 587, f1: 587, dur: 0.09, vol: 0.24 },
+                    { src: 'tone', wave: 'triangle', f0: 740, f1: 740, dur: 0.09, vol: 0.24, delay: 0.09 },
+                    { src: 'tone', wave: 'triangle', f0: 880, f1: 880, dur: 0.14, vol: 0.26, delay: 0.18 }]
       }
     },
 
@@ -548,7 +620,9 @@ GAME.CONFIG = (function () {
       critText: '#ffd24d', dmgText: '#ffffff',
       ikillText: '#ffe9a3', ikillEdge: 'rgba(255,77,94,0.9)', // 秒杀专属：亮金主体 + 红色描边（区别于暴击金）
       buffSmall: '#57ffa9', buffHigh: '#ffd24d', weaponDrop: '#c9b6ff',
-      glow: { cyan: '#5ffbf1', red: '#ff5566', orange: '#ff9933', gold: '#ffd24d', purple: '#a78bff', white: '#ffffff' }
+      expOrb: '#57ffa9', healPack: '#ff6e8a', mateDrop: '#9db4ff', bulletMate: '#b8c7ff',
+      glow: { cyan: '#5ffbf1', red: '#ff5566', orange: '#ff9933', gold: '#ffd24d', purple: '#a78bff', white: '#ffffff',
+        mint: '#57ffa9', pink: '#ff6e8a', ice: '#9db4ff' }
     }
   };
 
@@ -745,6 +819,7 @@ GAME.Input = (function () {
   const STICK_MAX = 45, DEAD = 0.25; // 摇杆最大偏移半径 / 死区阈值
   const keyTimes = {};               // 按键按下时间戳（冲突方向"后按优先"依据）
   let mouseDown = false, spaceDown = false, mouseMoved = false, mouseX = 0, mouseY = 0;
+  let mouseAimT = 0; // 鼠标瞄准活跃时间戳（静止超窗后让位自动瞄准）
   let slotPressed = 0, pausePressed = false, swapPressed = false;
   let attackBtnHeld = false, stickAim = null;
   const moveStick = { id: null, cx: 0, cy: 0, vx: 0, vy: 0 }; // 左摇杆（移动）
@@ -819,7 +894,7 @@ GAME.Input = (function () {
   function init() {
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
-    window.addEventListener('mousemove', function (e) { mouseX = e.clientX; mouseY = e.clientY; mouseMoved = true; });
+    window.addEventListener('mousemove', function (e) { mouseX = e.clientX; mouseY = e.clientY; mouseMoved = true; mouseAimT = performance.now(); });
     window.addEventListener('mousedown', function (e) { if (e.button === 0) mouseDown = true; });
     window.addEventListener('mouseup', function (e) { if (e.button === 0) mouseDown = false; });
     window.addEventListener('blur', function () { // 失焦清键，防按键卡死
@@ -847,7 +922,10 @@ GAME.Input = (function () {
     if (len > 1) { mx /= len; my /= len; }
     let aim = null;
     if (stickAim != null) aim = stickAim;                       // 右摇杆优先
-    else if (mouseMoved) aim = Math.atan2(mouseY - py, mouseX - px); // 鼠标瞄准
+    /* 鼠标瞄准：仅活跃窗口内输出（手动优先）；静止超窗后 aimAngle 置 null 让位自动瞄准 */
+    else if (mouseMoved && performance.now() - mouseAimT < CONFIG.combat.autoAim.mouseActiveWindow) {
+      aim = Math.atan2(mouseY - py, mouseX - px);
+    }
     const attackHeld = mouseDown || spaceDown || attackBtnHeld || stickAim != null;
     const out = { moveX: mx, moveY: my, aimAngle: aim, attackHeld: aim != null ? attackHeld : attackHeld, pausePressed: pausePressed, slotPressed: slotPressed, swapPressed: swapPressed };
     pausePressed = false; slotPressed = 0; swapPressed = false; // 边沿字段每帧至多消费一次
@@ -863,6 +941,7 @@ GAME.Input = (function () {
 GAME.World = (function () {
   const W = {
     enemies: [], boss: null, bullets: [], particles: [], floatTexts: [], drops: [], effects: [],
+    mates: [], // 队友容器（无生命纯辅助，数量无上限，不入 limits 池体系——决策 D8）
     bulletPool: [], particlePool: [], floatTextPool: []
   };
 
@@ -879,6 +958,7 @@ GAME.World = (function () {
   }
   function reset() {
     W.enemies.length = 0; W.boss = null; W.drops.length = 0; W.effects.length = 0;
+    W.mates.length = 0; // 局级清空队友（禁止跨局保留，spec 5.5.1 规则 12）
     for (const b of W.bulletPool) b.active = false;
     for (const p of W.particlePool) p.active = false;
     for (const f of W.floatTextPool) f.active = false;
@@ -987,10 +1067,35 @@ GAME.World = (function () {
       if (!bu.active) { W.bullets[i] = W.bullets[W.bullets.length - 1]; W.bullets.pop(); }
     }
   }
+  /* 清关清弹：将全部敌方子弹（owner === 'enemy'）置为非活跃，玩家/队友子弹保留；
+     非活跃子弹由本帧后续 cull 统一 swap-remove 回收（复用既有回收路径，零新增清理代码） */
+  function clearEnemyBullets() {
+    for (const b of W.bullets) {
+      if (b.active && b.owner === 'enemy') b.active = false;
+    }
+  }
+  /* 最近存活敌人检索：线性遍历 enemies 与 boss（hp > 0），距离平方比较规避开方；
+     距离相同取遍历序先到者；供玩家自动瞄准与战斗型队友共享调用（每帧常数次 O(n)） */
+  function findNearestEnemy(px, py) {
+    let best = null, bestSq = Infinity;
+    for (const e of W.enemies) {
+      if (e.hp <= 0) continue;
+      const d = Utils.distSq(px, py, e.x, e.y);
+      if (d < bestSq) { bestSq = d; best = e; }
+    }
+    const b = W.boss;
+    if (b && b.hp > 0) {
+      const d = Utils.distSq(px, py, b.x, b.y);
+      if (d < bestSq) best = b;
+    }
+    return best;
+  }
   /* 将生命周期方法挂到实体容器上：World 模块即容器本身（单一对象承载全部实体、池与方法） */
   W.init = init;
   W.reset = reset;
   W.spawnBullet = spawnBullet;
+  W.clearEnemyBullets = clearEnemyBullets;
+  W.findNearestEnemy = findNearestEnemy;
   W.spawnParticles = spawnParticles;
   W.spawnFloatText = spawnFloatText;
   W.spawnDrop = spawnDrop;
@@ -1134,8 +1239,8 @@ GAME.Combat = (function () {
       if (b.life <= 0 || b.x < -m || b.x > R.W + m || b.y < -m || b.y > R.H + m) {
         b.active = false; continue; // 出界/超时回收
       }
-      if (b.owner === 'player') {
-        /* 玩家子弹 → 敌人 / Boss */
+      if (b.owner !== 'enemy') {
+        /* 玩家/队友子弹 → 敌人 / Boss（mate 子弹同走命中管线：暴击/秒杀/击杀统计/掉落 roll 自动联动） */
         let consumed = false;
         for (const e of World.enemies) {
           if (e.hp > 0 && Utils.circleHit(b.x, b.y, b.radius, e.x, e.y, e.radius)) {
@@ -1607,11 +1712,25 @@ GAME.DropBuff = (function () {
     return result;
   }
 
-  /* 普通敌人死亡掉落 roll：按类型掉落率随机判定，命中生成小型增益（池仅 7 种常规，排除秒杀） */
-  function rollEnemyDrop(e) {
-    if (Math.random() >= e.def.dropRate) return;
-    const type = commonBuffTypes[Utils.randInt(0, commonBuffTypes.length - 1)];
-    World.spawnDrop(e.x, e.y, 'buff', 'small', type);
+  /* 普通敌人死亡多路独立掉落判定：既有增益 / 经验球 / 血包三路各自独立随机数 roll，
+     任一命中不影响其他判定（spec 4.2.4 掉落判定独立）；多路命中时生成位置以死亡点为中心
+     ±12px 随机错位（防同点视觉重叠吞辨识，spec 5.4.3 场景 1） */
+  function rollEnemyDrops(e) {
+    const off = CONFIG.drops.mate.spawnOffset;
+    const jx = function () { return Utils.rand(-off, off); };
+    /* 路径 1：既有小型增益（类型掉落率，池仅 7 种常规，排除秒杀） */
+    if (Math.random() < e.def.dropRate) {
+      const type = commonBuffTypes[Utils.randInt(0, commonBuffTypes.length - 1)];
+      World.spawnDrop(e.x + jx(), e.y + jx(), 'buff', 'small', type);
+    }
+    /* 路径 2：经验球（10%，独立判定，spec 5.3.1 规则 1） */
+    if (Math.random() < CONFIG.drops.expOrb.dropRate) {
+      World.spawnDrop(e.x + jx(), e.y + jx(), 'exp', null, null);
+    }
+    /* 路径 3：血包（1%，独立判定，spec 5.4.1 规则 1） */
+    if (Math.random() < CONFIG.drops.healPack.dropRate) {
+      World.spawnDrop(e.x + jx(), e.y + jx(), 'heal', null, null);
+    }
   }
   /* Boss 必定掉落武器（高品质增益改为二选一界面发放，spec 5.2.1 规则 1/2） */
   function spawnBossWeaponDrop(b) {
@@ -1631,7 +1750,20 @@ GAME.DropBuff = (function () {
       if (dsq < player.pickupRadius * player.pickupRadius) {
         drops[i] = drops[drops.length - 1]; drops.pop(); // swap-remove 后再结算
         if (d.kind === 'buff') applyBuff(player, d.tier, d.payload);
-        else pickupWeapon(player, d.payload);
+        else if (d.kind === 'weapon') pickupWeapon(player, d.payload);
+        else if (d.kind === 'exp') { // 经验球：累加经验并触发升级结算（死亡守卫在 gainExp 内）
+          GAME.AudioSys.play('expOrb');
+          GAME.UI.showToast('获得经验 +' + CONFIG.growth.expOrbValue, 'buff');
+          GAME.Growth.gainExp(player, CONFIG.growth.expOrbValue);
+        } else if (d.kind === 'heal') { // 血包：立即回复 30% 最大生命并封顶（满血拾取流程正常完成、数值不变）
+          player.hp = Math.min(player.hp + player.maxHp * CONFIG.drops.healPack.healRatio, player.maxHp);
+          GAME.AudioSys.play('heal');
+          GAME.UI.showToast('获得血包', 'buff');
+        } else if (d.kind === 'mate') { // 队友掉落：随机类型入场（增益型/战斗型，spec 5.5.1 规则 2）
+          GAME.Mates.add(player);
+        } else {
+          console.warn('未知掉落物类型: ' + d.kind); // 未知 kind 安全跳过
+        }
       } else if (dsq < magnetR * magnetR) {
         /* 吸附动画：向玩家加速飘移 */
         const dist = Math.sqrt(dsq) || 1;
@@ -1664,19 +1796,23 @@ GAME.DropBuff = (function () {
     GAME.UI.refreshBuffs(player);
   }
 
-  /* 全量重算引擎：由 buffStacks 累计值重算全部修正系数（软上限钳制） */
+  /* 全量重算引擎：buff + levelBonus + mateBonus 三源求和后统一软上限钳制（防增量漂移）；
+     新来源字段缺失按 0 归一容错（spec 6.1.4 叠加后仍受既有软上限约束） */
   function recalc(player) {
     const caps = CONFIG.drops.caps, bs = player.buffStacks;
-    player.atkMul = Math.min(1 + (bs.atk ? bs.atk.value : 0), caps.atk);
-    player.aspdMul = Math.min(1 + (bs.aspd ? bs.aspd.value : 0), caps.aspd);
-    player.speedMul = Math.min(1 + (bs.speed ? bs.speed.value : 0), caps.speed);
+    const lb = player.levelBonus || { atk: 0, aspd: 0, speed: 0, maxhp: 0 };
+    const mb = player.mateBonus || { atk: 0, aspd: 0, speed: 0, maxhp: 0 };
+    player.atkMul = Math.min(1 + (bs.atk ? bs.atk.value : 0) + lb.atk + mb.atk, caps.atk);
+    player.aspdMul = Math.min(1 + (bs.aspd ? bs.aspd.value : 0) + lb.aspd + mb.aspd, caps.aspd);
+    player.speedMul = Math.min(1 + (bs.speed ? bs.speed.value : 0) + lb.speed + mb.speed, caps.speed);
     player.critRate = Math.min(bs.crit ? bs.crit.value : 0, caps.crit);
     /* 秒杀概率：与 critRate 同构的线性累加 + 软上限钳制（spec 6.3.1，上限 10% 为决策 D） */
     player.instantKillRate = Math.min(bs.instantKill ? bs.instantKill.value : 0, caps.instantKill);
     player.regen = bs.regen ? bs.regen.value : 0;
     player.pickupRadius = Math.min(CONFIG.player.pickupRadius + (bs.pickup ? bs.pickup.value : 0), caps.pickup);
-    /* 最大生命特例：上限提升同步 + 等量当前生命（满血拾取无异常） */
-    const targetAdd = bs.maxhp ? bs.maxhp.value : 0;
+    /* 最大生命特例：buffHpAdded 语义扩展为"全部非基础来源（增益+升级+队友）已入账量"，
+       上限提升同步等量当前生命（满血拾取无异常） */
+    const targetAdd = (bs.maxhp ? bs.maxhp.value : 0) + lb.maxhp + mb.maxhp;
     const add = targetAdd - player.buffHpAdded;
     if (add !== 0) {
       player.maxHp += add;
@@ -1701,8 +1837,150 @@ GAME.DropBuff = (function () {
       GAME.Game.requestWeaponReplace(def); // 已双持 → 暂停战斗弹出替换/放弃界面
     }
   }
-  return { rollEnemyDrop: rollEnemyDrop, spawnBossWeaponDrop: spawnBossWeaponDrop, update: update,
+  return { rollEnemyDrops: rollEnemyDrops, spawnBossWeaponDrop: spawnBossWeaponDrop, update: update,
     applyBuff: applyBuff, recalc: recalc, rollCandidates: rollCandidates, isBuffCapped: isBuffCapped, fmt: fmt };
+})();
+
+/* ============================================================
+ * Growth 模块：经验累积与升级结算（阈值曲线 / 溢出结转 / 连续升级 / 回满血）
+ * ============================================================ */
+GAME.Growth = (function () {
+  /* 升级阈值曲线：base × step^(level-1) 向上取整；非法 level 钳 1 兜底，
+     恒返回 ≥ 1 正整数（升级循环必然终止的防死循环红线） */
+  function threshold(level) {
+    const g = CONFIG.growth;
+    const lv = (typeof level === 'number' && isFinite(level) && level >= 1) ? level : 1;
+    return Math.max(1, Math.ceil(g.thresholdBase * Math.pow(g.thresholdStep, lv - 1)));
+  }
+  /* 经验累加与升级结算唯一入口：死亡守卫 → 累加 → 升级循环（溢出结转/连续升级） */
+  function gainExp(player, amount) {
+    if (player.hp <= 0) return; // 死亡结算优先（spec 4.2.6）
+    if (!(typeof amount === 'number' && isFinite(amount) && amount > 0)) return; // 非法增量钳 0
+    player.exp += amount;
+    const g = CONFIG.growth;
+    /* 升级循环：单次拾取跨越多个阈值时连续升级，溢出经验结转为当前等级进度（禁止经验丢失，spec 5.3.1 规则 6） */
+    while (player.hp > 0 && player.exp >= threshold(player.level)) {
+      player.exp -= threshold(player.level);
+      player.level += 1;
+      /* 每级属性收益累计（经 recalc 三源求和入算并受软上限钳制） */
+      player.levelBonus.atk += g.levelBonus.atk;
+      player.levelBonus.aspd += g.levelBonus.aspd;
+      player.levelBonus.speed += g.levelBonus.speed;
+      player.levelBonus.maxhp += g.levelBonus.maxhp;
+      GAME.DropBuff.recalc(player);
+      player.hp = player.maxHp; // 升级回满血（封顶天然成立，满血升级幂等无异常，spec 5.3.3 场景 1）
+      GAME.UI.showToast('升级！Lv.' + player.level, 'level');
+      GAME.AudioSys.play('levelup');
+    }
+  }
+  return { threshold: threshold, gainExp: gainExp };
+})();
+
+/* ============================================================
+ * Mates 模块：队友实体（无生命纯辅助）· 类型随机入场 · 黄金角跟随 · 协战
+ * ============================================================ */
+GAME.Mates = (function () {
+  const World = GAME.World;
+
+  /* 权重随机兜底：任一权重非法（非有限正数）或总和 ≤ 0 时均匀随机（spec 4.2 容错） */
+  function pickSafe(items) {
+    let total = 0, bad = false;
+    for (const it of items) {
+      if (!isFinite(it.weight) || it.weight <= 0) { bad = true; break; }
+      total += it.weight;
+    }
+    if (bad || total <= 0) return items[Utils.randInt(0, items.length - 1)].key;
+    return Utils.pickWeighted(items);
+  }
+  /* 增益型队友的增益名称（提示文案用） */
+  function bonusName(key) {
+    if (key === 'atk') return '攻击力提升';
+    if (key === 'aspd') return '攻击速度提升';
+    if (key === 'speed') return '移动速度提升';
+    if (key === 'maxhp') return '最大生命提升';
+    console.warn('未知队友增益类型: ' + key);
+    return '属性提升';
+  }
+
+  /* 队友拾取结算入口：类型按权重随机 → 增益型随机携带一项增益 → 实体入容器 → 属性入算 */
+  function add(player) {
+    const cfg = CONFIG.mates;
+    /* ① 类型随机（support 增益型 / combat 战斗型，spec 5.5.1 规则 2） */
+    const type = pickSafe([
+      { key: 'support', weight: cfg.typeWeights.support },
+      { key: 'combat', weight: cfg.typeWeights.combat }
+    ]);
+    /* ② 增益型：按权重池随机携带一项增益并累计入 mateBonus（多名同类可叠加，spec 5.5.1 规则 6） */
+    let buffKey = null;
+    if (type === 'support') {
+      const pool = cfg.supportBonus;
+      buffKey = pickSafe(Object.keys(pool).map(function (k) { return { key: k, weight: pool[k].weight }; }));
+      const def = pool[buffKey];
+      if (def && typeof def.value === 'number' && isFinite(def.value)) {
+        player.mateBonus[buffKey] += def.value;
+      } else {
+        console.warn('队友增益配置非法: ' + buffKey);
+      }
+    }
+    /* ③ 生成队友实体（字段序固定，V8 隐藏类稳定；入场位置 = 玩家位置 + 队形相位偏移） */
+    const phase = World.mates.length * cfg.goldenAngle;
+    World.mates.push({
+      type: type, buffKey: buffKey,
+      x: player.x + Math.cos(phase) * cfg.followRadius,
+      y: player.y + Math.sin(phase) * cfg.followRadius,
+      phase: phase, fireCd: 0, rot: 0
+    });
+    /* ④ 属性重算（增益入算）+ HUD 队友统计刷新 + 类型明示提示 + 音效 */
+    GAME.DropBuff.recalc(player);
+    GAME.UI.refreshMates(player);
+    GAME.AudioSys.play('mateGet');
+    if (type === 'support') GAME.UI.showToast('获得增益型队友 · ' + bonusName(buffKey), 'buff');
+    else GAME.UI.showToast('获得战斗型队友', 'buff');
+  }
+
+  /* 每帧队友行为：帧首共享最近敌人检索（每帧仅 1 次 O(敌人数)，决策 D6）
+     → 跟随分支（全体：黄金角队形 + 追赶限速 + 超距钳制）+ 战斗分支（战斗型：冷却射击） */
+  function update(dt, player) {
+    const mates = World.mates;
+    if (mates.length === 0) return;
+    const cfg = CONFIG.mates;
+    const target = World.findNearestEnemy(player.x, player.y);
+    const followSpeed = player.speed * player.speedMul * cfg.catchUpSpeed;
+    for (const m of mates) {
+      /* 跟随：队形目标点 = 玩家位置 + 环绕半径 × 黄金角相位（任意数量自然散开，增减无需重排，决策 D7） */
+      const tx = player.x + Math.cos(m.phase) * cfg.followRadius;
+      const ty = player.y + Math.sin(m.phase) * cfg.followRadius;
+      const dx = tx - m.x, dy = ty - m.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 1) {
+        const step = Math.min(dist, followSpeed * dt);
+        m.x += dx / dist * step;
+        m.y += dy / dist * step;
+      }
+      /* 超距钳制回归：极端脱离时拉回玩家附近（防永久脱离/走出竞技场，spec 5.5.1 规则 5） */
+      if (Utils.distSq(m.x, m.y, player.x, player.y) > cfg.maxLagDist * cfg.maxLagDist) {
+        m.x = player.x + (m.x - player.x) * 0.3;
+        m.y = player.y + (m.y - player.y) * 0.3;
+      }
+      /* 战斗型协战：冷却到且有存活目标时发射 mate 归属子弹（复用玩家命中管线，
+         击杀统计/掉落 roll/暴击秒杀经既有 hitEnemy 通道自动联动，决策 D5） */
+      if (m.type === 'combat') {
+        m.fireCd -= dt;
+        if (m.fireCd <= 0) {
+          if (target) {
+            const aim = Math.atan2(target.y - m.y, target.x - m.x);
+            m.rot = aim;
+            World.spawnBullet('mate', m.x, m.y, aim, cfg.combat.bulletSpeed,
+              cfg.combat.damage, cfg.combat.bulletRadius, 'mate', cfg.combat.bulletLife);
+            m.fireCd = cfg.combat.fireInterval;
+          } else {
+            m.fireCd = cfg.combat.retryCd; // 无敌人短重试（不攻击不报错）
+          }
+        }
+      }
+    }
+  }
+  return { add: add, update: update };
 })();
 
 /* ============================================================
@@ -1779,6 +2057,12 @@ GAME.Render = (function () {
         color = d.tier === 'high' ? CONFIG.colors.buffHigh : CONFIG.colors.buffSmall;
         glowKey = d.tier === 'high' ? 'gold' : 'cyan';
         size = d.tier === 'high' ? 14 : 10;
+      } else if (d.kind === 'exp') {
+        color = CONFIG.colors.expOrb; glowKey = 'mint'; size = 9;
+      } else if (d.kind === 'heal') {
+        color = CONFIG.colors.healPack; glowKey = 'pink'; size = 11;
+      } else if (d.kind === 'mate') {
+        color = CONFIG.colors.mateDrop; glowKey = 'ice'; size = 12;
       } else {
         color = CONFIG.colors.weaponDrop;
         glowKey = 'purple';
@@ -1799,6 +2083,32 @@ GAME.Render = (function () {
         ctx.closePath(); ctx.fill(); ctx.stroke();
         ctx.fillStyle = '#ffffff';
         ctx.beginPath(); ctx.arc(x, y, size * 0.22, 0, Math.PI * 2); ctx.fill();
+      } else if (d.kind === 'exp') {
+        /* 经验球：翠绿小球 + 白核（与增益菱形/武器剑形明确可区分，spec 6.2.4） */
+        ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(x, y, size * 0.4, 0, Math.PI * 2); ctx.fill();
+      } else if (d.kind === 'heal') {
+        /* 血包：粉红方块底 + 白十字（生命语义，与经验球翠绿直接可分辨，spec 5.4.1 规则 5） */
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x - size, y - size, size * 2, size * 2, 4);
+        else ctx.rect(x - size, y - size, size * 2, size * 2);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        const tw = size * 0.34, tl = size * 0.72;
+        ctx.fillRect(x - tw / 2, y - tl / 2, tw, tl);
+        ctx.fillRect(x - tl / 2, y - tw / 2, tl, tw);
+      } else if (d.kind === 'mate') {
+        /* 队友掉落：蓝白六边形伙伴徽记 + 白核 */
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const a = i * Math.PI / 3 - Math.PI / 2;
+          const px = x + Math.cos(a) * size, py = y + Math.sin(a) * size;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(x, y, size * 0.3, 0, Math.PI * 2); ctx.fill();
       } else {
         /* 剑形武器掉落：竖长剑刃 + 横护手 */
         ctx.beginPath();
@@ -1994,6 +2304,45 @@ GAME.Render = (function () {
     ctx.restore();
   }
 
+  /* 队友层：增益型（青色菱形+外圈光环）/ 战斗型（紫白小三角朝向目标）分组批量绘制
+     （每帧 2 次 shadowBlur 设置，纪律同 drawEnemies；未知类型跳过绘制） */
+  function drawMates() {
+    const mates = GAME.World.mates;
+    if (mates.length === 0) return;
+    const ctx = R.ctx, cfg = CONFIG.mates, r = cfg.radius;
+    /* 增益型：青色菱形 + 外圈光环（表意增益光环） */
+    ctx.shadowColor = CONFIG.colors.expOrb;
+    ctx.shadowBlur = 10;
+    for (const m of mates) {
+      if (m.type !== 'support') continue;
+      ctx.fillStyle = '#7dffd4';
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(m.x, m.y - r); ctx.lineTo(m.x + r * 0.7, m.y);
+      ctx.lineTo(m.x, m.y + r); ctx.lineTo(m.x - r * 0.7, m.y);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = 'rgba(125,255,212,0.4)';
+      ctx.beginPath(); ctx.arc(m.x, m.y, r + 5, 0, Math.PI * 2); ctx.stroke();
+    }
+    /* 战斗型：紫白小三角（朝向本帧攻击目标） */
+    ctx.shadowColor = CONFIG.colors.mateDrop;
+    for (const m of mates) {
+      if (m.type !== 'combat') continue;
+      ctx.save();
+      ctx.translate(m.x, m.y);
+      ctx.rotate(m.rot);
+      ctx.fillStyle = CONFIG.colors.bulletMate;
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(r, 0); ctx.lineTo(-r * 0.8, -r * 0.7); ctx.lineTo(-r * 0.8, r * 0.7);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
+    ctx.shadowBlur = 0;
+  }
+
   /* 子弹层：加法混合 + 渐变贴图；玩家子弹带渐细渐淡拖尾 */
   function drawBullets() {
     const ctx = R.ctx;
@@ -2014,7 +2363,7 @@ GAME.Render = (function () {
           }
         }
       }
-      const tex = R.glowTex[b.style === 'player' ? 'cyan' : (b.style === 'boss' ? 'gold' : 'orange')];
+      const tex = R.glowTex[b.style === 'player' ? 'cyan' : (b.style === 'boss' ? 'gold' : (b.style === 'mate' ? 'ice' : 'orange'))];
       const s = b.radius * 6;
       ctx.globalAlpha = 0.9;
       ctx.drawImage(tex, b.x - s / 2, b.y - s / 2, s, s);
@@ -2091,6 +2440,7 @@ GAME.Render = (function () {
     if (player) drawEnemies(player);
     drawBoss();
     drawPlayer(player);
+    drawMates();
     drawBullets();
     drawParticles();
     drawFloatTexts();
@@ -2119,6 +2469,7 @@ GAME.UI = (function () {
     el = {
       hud: $('hud'), floor: $('hud-floor'), kills: $('hud-kills'),
       hpFill: $('hp-fill'), hpText: $('hp-text'), buffBar: $('buff-bar'),
+      lvBadge: $('lv-badge'), expFill: $('exp-fill'), mateBar: $('mate-bar'),
       bossWrap: $('boss-bar-wrap'), bossName: $('boss-name'), bossFill: $('boss-fill'),
       wslots: [$('wslot-0'), $('wslot-1')],
       toastLayer: $('toast-layer'), weaponCards: $('weapon-cards'),
@@ -2237,6 +2588,13 @@ GAME.UI = (function () {
     if (last.floor !== floorStr) { el.floor.textContent = floorStr; last.floor = floorStr; }
     const killStr = '击杀 ' + st.kills;
     if (last.kills !== killStr) { el.kills.textContent = killStr; last.kills = killStr; }
+    /* 经验条与等级徽章（脏标记：等级文本变化才写、经验比例变化才写 transform，spec 5.3.1 规则 7） */
+    const lvStr = 'Lv.' + p.level;
+    if (last.level !== lvStr) { el.lvBadge.textContent = lvStr; last.level = lvStr; }
+    const expNeed = GAME.Growth.threshold(p.level);
+    const expRatio = expNeed > 0 ? Utils.clamp(p.exp / expNeed, 0, 1) : 0;
+    const expKey = expRatio.toFixed(4);
+    if (last.exp !== expKey) { el.expFill.style.transform = 'scaleX(' + expRatio + ')'; last.exp = expKey; }
     const hpRatio = p.maxHp > 0 ? Utils.clamp(p.hp / p.maxHp, 0, 1) : 0;
     el.hpFill.style.transform = 'scaleX(' + hpRatio + ')';
     const hpStr = Math.ceil(p.hp) + '/' + Math.round(p.maxHp);
@@ -2290,6 +2648,15 @@ GAME.UI = (function () {
     refreshWeapons(p); // 攻击力增益影响武器槽伤害显示
   }
 
+  /* 队友统计刷新（事件级：队友入场 / 清局后调用）：数量与类型构成一次性重建 DOM（spec 5.5.1 规则 11） */
+  function refreshMates(player) {
+    const mates = GAME.World.mates;
+    if (!player || mates.length === 0) { el.mateBar.innerHTML = ''; return; }
+    let support = 0, combat = 0;
+    for (const m of mates) { if (m.type === 'support') support++; else combat++; }
+    el.mateBar.innerHTML = '<span class="mate-chip">队友 ×' + mates.length + ' · 增益 ' + support + ' · 战斗 ' + combat + '</span>';
+  }
+
   /* 提示浮层：CSS 动画自动淡出，animationend 清理节点（无定时器泄漏） */
   function showToast(text, style) {
     const node = document.createElement('div');
@@ -2302,7 +2669,7 @@ GAME.UI = (function () {
 
   return { init: init, showScreen: showScreen, hideAllScreens: hideAllScreens, showHUD: showHUD,
     showStart: showStart, showReplace: showReplace, showGameOver: showGameOver, showBuffChoice: showBuffChoice,
-    updateHUD: updateHUD, refreshWeapons: refreshWeapons, refreshBuffs: refreshBuffs, showToast: showToast };
+    updateHUD: updateHUD, refreshWeapons: refreshWeapons, refreshBuffs: refreshBuffs, refreshMates: refreshMates, showToast: showToast };
 })();
 
 /* ============================================================
@@ -2377,7 +2744,11 @@ GAME.Game = (function () {
       instantKillRate: 0, // 秒杀概率通道（recalc 全量重算，spec 6.3.1）
       pickupRadius: CONFIG.player.pickupRadius, buffHpAdded: 0,
       slots: [{ def: def, cooldownT: 0 }, null],
-      currentSlot: 0, buffStacks: {}
+      currentSlot: 0, buffStacks: {},
+      /* 成长状态（局内临时，不入存档，spec 6.6.1）：等级/经验/升级收益/队友增益（追加于既有字段后） */
+      level: CONFIG.growth.initialLevel, exp: 0,
+      levelBonus: { atk: 0, aspd: 0, speed: 0, maxhp: 0 },
+      mateBonus: { atk: 0, aspd: 0, speed: 0, maxhp: 0 }
     };
     G.stats = { floor: 0, kills: 0, bossKills: 0, usedWeaponIds: [weaponId] };
     GAME.World.reset();
@@ -2386,6 +2757,7 @@ GAME.Game = (function () {
     GAME.UI.showHUD(true);
     GAME.UI.refreshWeapons(G.player);
     GAME.UI.refreshBuffs(G.player);
+    GAME.UI.refreshMates(G.player); // 队友统计初始化（新局清空展示）
     enterLevel(1);
   }
 
@@ -2485,6 +2857,7 @@ GAME.Game = (function () {
     G.buffChoiceKind = null; G.buffChoiceFrom = null; // 增益选择状态清理（防残留污染下一局，spec 5.6.1 规则 2）
     GAME.World.reset();
     GAME.LevelGen.reset();
+    GAME.UI.refreshMates(null); // 队友统计清空（等级/经验/队友禁止跨局保留，spec 5.3.1 规则 9 / 5.5.1 规则 12）
     GAME.UI.hideAllScreens();
     GAME.UI.showHUD(false);
     G.state = 'WEAPON_SELECT';
@@ -2503,7 +2876,7 @@ GAME.Game = (function () {
     GAME.AudioSys.play('enemyDie');
     GAME.Render.shake(CONFIG.shake.enemyDie);
     G.stats.kills++;
-    GAME.DropBuff.rollEnemyDrop(e);
+    GAME.DropBuff.rollEnemyDrops(e);
   }
 
   /* Boss 死亡结算：大型粒子爆炸 + 强屏震 + Boss 数+1 + 必定双掉落（由 World.cull 调用） */
@@ -2520,6 +2893,11 @@ GAME.Game = (function () {
     GAME.Render.shake(CONFIG.shake.bossDie);
     G.stats.bossKills++;
     GAME.DropBuff.spawnBossWeaponDrop(b); // 必掉武器掉落物（高品质增益由二选一界面发放，spec 5.2.1）
+    /* 队友掉落：30% 独立判定（独立随机数，必掉武器与二选一增益零影响，spec 5.5.1 规则 1） */
+    if (Math.random() < CONFIG.drops.mate.dropRate) {
+      const off = CONFIG.drops.mate.spawnOffset;
+      GAME.World.spawnDrop(b.x + Utils.rand(-off, off), b.y + Utils.rand(-off, off), 'mate', null, null);
+    }
     /* Boss 死亡瞬间先弹高品质增益二选一（先于武器拾取，spec 5.2.1 规则 3，决策 B）；
        GAME_OVER 守卫在 requestBuffChoice 内部拦截同帧双死（spec 5.2.3 场景 1） */
     requestBuffChoice('boss');
@@ -2529,6 +2907,8 @@ GAME.Game = (function () {
   /* 清关事件（LevelGen.tick 检测到全空时调用，状态守卫防重复推进） */
   function onLevelClear() {
     if (G.state === 'PLAYING' || G.state === 'LEVEL_INTRO') {
+      /* 清关清弹：与清关判定同帧原子生效，清除全部残留敌方子弹（禁止跨关伤害，spec 5.1.1 规则 2/5） */
+      if (CONFIG.combat.clearEnemyBulletsOnClear) GAME.World.clearEnemyBullets();
       G.state = 'LEVEL_CLEAR';
       G.clearT = CONFIG.ui.clearDelay; // 0.8s 后层数+1 自动推进
     }
@@ -2597,8 +2977,13 @@ GAME.Game = (function () {
   function updateBattle(dt, input) {
     const p = G.player;
     if (!p || p.hp <= 0) return;
-    /* 瞄准更新：触摸摇杆优先，其次鼠标（无瞄准输入保持上次朝向） */
+    /* 瞄准更新：手动输入（摇杆/活跃窗口内鼠标）优先；无手动输入时自动瞄准最近存活敌人，
+       场上无敌人保持上次朝向（禁止方向跳变，spec 5.2.1 规则 3） */
     if (input.aimAngle != null) p.aimAngle = input.aimAngle;
+    else {
+      const target = GAME.World.findNearestEnemy(p.x, p.y);
+      if (target) p.aimAngle = Math.atan2(target.y - p.y, target.x - p.x);
+    }
     /* 玩家移动：速度 × 增益系数，钳制竞技场边界（spec 5.7.1 规则 7） */
     p.x += input.moveX * p.speed * p.speedMul * dt;
     p.y += input.moveY * p.speed * p.speedMul * dt;
@@ -2611,6 +2996,7 @@ GAME.Game = (function () {
     GAME.Combat.update(dt, p, input);       // 冷却递减 + 攻击执行
     GAME.EnemyAI.update(dt, p);             // 敌人 AI
     GAME.BossAI.update(dt, p);              // Boss 行为状态机
+    GAME.Mates.update(dt, p);               // 队友跟随与协战（当帧发射的子弹立即进入命中管线）
     GAME.Combat.updateBullets(dt, p);       // 子弹飞行与命中
     GAME.DropBuff.update(dt, p);            // 掉落物吸附与拾取
     GAME.World.updateParticles(dt);         // 粒子
