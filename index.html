@@ -101,6 +101,9 @@ body.touch #mobile-buttons { display: flex; }
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 .weapon-slot.active { border-color: #5ffbf1; box-shadow: 0 0 12px rgba(95, 251, 241, 0.45); }
+/* 双持充能拳套叠加标识：品红发光边框（spec 5.5.1 规则 4，延续深色霓虹风格） */
+.weapon-slot.dual-gauntlet { border-color: #ff7bd5; box-shadow: 0 0 14px rgba(255, 123, 213, 0.55); }
+.weapon-slot.dual-gauntlet .wslot-name { color: #ff7bd5; }
 .wslot-key { position: absolute; top: 3px; left: 7px; font-size: 10px; color: #8f9bd8; }
 .wslot-name { font-size: 15px; font-weight: 600; letter-spacing: 2px; color: #8f9bd8; }
 .weapon-slot.active .wslot-name { color: #5ffbf1; }
@@ -141,14 +144,38 @@ body.touch #mobile-buttons { display: flex; }
 .neon-btn-sec:hover { background: rgba(167, 139, 255, 0.15); box-shadow: 0 0 18px rgba(167, 139, 255, 0.45); }
 .btn-col { display: flex; flex-direction: column; align-items: center; }
 
+/* 兑换码区（spec 5.6.1 规则 1）：次级霓虹按钮 + 内联输入面板（展开/收起无布局跳动） */
+.redeem-entry { margin-top: 12px; padding: 8px 30px; font-size: 14px; letter-spacing: 3px; }
+.redeem-panel { display: none; margin-top: 12px; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.redeem-panel.on { display: flex; }
+.redeem-input {
+  pointer-events: auto; width: min(200px, 56vw); padding: 9px 12px; font-size: 14px; letter-spacing: 2px;
+  color: #dfe6ff; background: rgba(10, 16, 38, 0.9);
+  border: 1px solid rgba(167, 139, 255, 0.7); border-radius: 8px; outline: none;
+  user-select: text; -webkit-user-select: text; touch-action: auto; /* 局部覆盖 body 全局禁选（17-18 行），恢复文本交互 */
+}
+.redeem-input:focus { border-color: #5ffbf1; box-shadow: 0 0 10px rgba(95, 251, 241, 0.35); }
+.redeem-panel .neon-btn { margin-top: 0; padding: 8px 18px; font-size: 13px; letter-spacing: 2px; }
+
 /* 武器三选一卡片 */
 .weapon-cards { display: flex; gap: 16px; margin-top: 26px; flex-wrap: wrap; justify-content: center; }
 .weapon-card {
-  pointer-events: auto; cursor: pointer; width: min(176px, 29vw); min-width: 128px; padding: 18px 12px;
+  pointer-events: auto; cursor: pointer; width: min(176px, 30vw); min-width: 128px; padding: 18px 12px;
   border: 1px solid rgba(167, 139, 255, 0.4); border-radius: 12px; background: rgba(16, 22, 48, 0.88);
   transition: all 0.15s; text-align: center;
 }
+/* 六选一网格（bow_staff_lifesteal D12）：flex-wrap 换行天然支持——桌面容器宽内 3 张换行成 3×2
+   （176×3 + gap×2 = 560 ≤ 600 容器宽）；窄屏媒体查询收紧为两列 2×3；禁止横向滚动（spec 决策项 18） */
 .weapon-card:hover { border-color: #5ffbf1; transform: translateY(-4px); box-shadow: 0 6px 24px rgba(95, 251, 241, 0.25); }
+/* 隐藏武器拳套卡片专属：品红描边 + 光晕 + "隐藏"角标（延续 .bcard-rare 角标模式，spec 5.6.1 规则 4a） */
+.weapon-card.hidden-weapon { position: relative; overflow: hidden; border-color: rgba(255, 123, 213, 0.85); }
+.weapon-card.hidden-weapon h3 { color: #ff7bd5; }
+.wcard-hidden {
+  position: absolute; top: 8px; right: -28px; transform: rotate(38deg); width: 110px; text-align: center;
+  font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #ff4d5e;
+  background: linear-gradient(90deg, rgba(255, 123, 213, 0.9), rgba(255, 200, 240, 0.95));
+  padding: 2px 0; box-shadow: 0 0 8px rgba(255, 123, 213, 0.5);
+}
 .weapon-card h3 { font-size: 19px; letter-spacing: 4px; color: #c9b6ff; }
 .wcard-type { display: inline-block; margin-top: 4px; font-size: 11px; color: #5ffbf1; border: 1px solid rgba(95, 251, 241, 0.4); border-radius: 8px; padding: 1px 8px; }
 .wcard-desc { margin-top: 10px; font-size: 12px; line-height: 1.7; color: #8f9bd8; min-height: 60px; }
@@ -161,6 +188,7 @@ body.touch #mobile-buttons { display: flex; }
 .replace-card h4 { font-size: 16px; letter-spacing: 3px; color: #ffd24d; }
 .replace-card.slot-card h4 { color: #c9b6ff; }
 .replace-card p { margin-top: 6px; font-size: 11px; line-height: 1.7; color: #8f9bd8; }
+.rcard-type { display: inline-block; margin-top: 4px; font-size: 10px; color: #5ffbf1; border: 1px solid rgba(95, 251, 241, 0.4); border-radius: 7px; padding: 1px 7px; }
 .replace-btns { margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .replace-btns .neon-btn { margin-top: 0; padding: 10px 20px; font-size: 14px; letter-spacing: 2px; }
 
@@ -183,6 +211,13 @@ body.touch #mobile-buttons { display: flex; }
 .toast-level { font-size: clamp(30px, 6vw, 46px); font-weight: 800; color: #5ffbf1; text-shadow: 0 0 24px rgba(95, 251, 241, 0.8); letter-spacing: 10px; }
 .toast-boss { font-size: clamp(34px, 7vw, 54px); font-weight: 800; color: #ffd24d; text-shadow: 0 0 30px rgba(255, 210, 77, 0.95); letter-spacing: 12px; }
 .toast-buff { font-size: 15px; color: #7dffd4; background: rgba(10, 20, 30, 0.65); padding: 4px 18px; border-radius: 14px; border: 1px solid rgba(87, 255, 169, 0.4); }
+/* 兑换成功专属（决策 D10）：品金渐变大字 + 光晕，反馈强度高于普通拾取 */
+.toast-redeem {
+  font-size: clamp(22px, 4vw, 30px); font-weight: 800; letter-spacing: 4px;
+  background: linear-gradient(90deg, #ff7bd5, #ffd24d);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 18px rgba(255, 123, 213, 0.6));
+}
 @keyframes toastAnim {
   0% { opacity: 0; transform: translateY(16px) scale(0.92); }
   10% { opacity: 1; transform: translateY(0) scale(1); }
@@ -245,6 +280,12 @@ body.touch #mobile-buttons { display: flex; }
   .buff-card { width: min(164px, 44vw); padding: 14px 10px; }
   .bcard-desc { font-size: 11px; min-height: 48px; }
   .buff-cards { gap: 12px; margin-top: 20px; }
+  .redeem-input { width: min(160px, 52vw); padding: 7px 10px; font-size: 13px; }
+  .redeem-panel .neon-btn { padding: 7px 14px; font-size: 12px; }
+  /* 六选一窄屏两列布局（bow_staff_lifesteal D12，对齐 buff-card 44vw 先例）：卡片收紧 + 描述紧凑 */
+  .weapon-card { width: min(160px, 44vw); padding: 14px 10px; }
+  .weapon-cards { gap: 12px; margin-top: 20px; }
+  .wcard-desc { font-size: 11px; min-height: 52px; margin-top: 8px; }
 }
 </style>
 </head>
@@ -304,6 +345,13 @@ body.touch #mobile-buttons { display: flex; }
         </div>
         <div id="best-record" class="best-record">最高纪录：第 0 层</div>
         <button class="neon-btn" id="btn-start">开始游戏</button>
+        <!-- 兑换码入口（spec 5.6.1 规则 1）：次级霓虹按钮 + 默认隐藏的内联输入区，仅开始界面存在 -->
+        <button class="neon-btn neon-btn-sec redeem-entry" id="btn-redeem">兑换码</button>
+        <div id="redeem-panel" class="redeem-panel">
+          <input id="redeem-input" class="redeem-input" type="text" maxlength="32" placeholder="输入兑换码" autocomplete="off">
+          <button class="neon-btn" id="btn-redeem-ok">兑换</button>
+          <button class="neon-btn neon-btn-sec" id="btn-redeem-close">收起</button>
+        </div>
       </div>
     </div>
     <div class="screen" id="screen-select">
@@ -415,6 +463,58 @@ GAME.CONFIG = (function () {
         bulletSpeed: 620, bulletLife: 1.2, bulletRadius: 4,
         sfx: 'shoot', color: '#ffe14d',
         desc: '远程单发子弹，射速中等、伤害中等，可远距离安全攻击。'
+      },
+      /* 隐藏武器"充能拳套"（spec 6.1 定稿/建议值，全部可调）：中速近战 · 群伤清屏——
+         冷却与手枪同档（慢于刀 0.35s、快于长枪 0.65s），伤害低于刀高于手枪，
+         连锁跳跃范围略大于长枪攻击距离 130（保证不断链且不全屏连锁） */
+      gauntlet: {
+        id: 'gauntlet', name: '充能拳套', type: 'melee_chain',
+        damage: 30,                        // 单跳伤害（可调）
+        cooldown: 0.5,                     // 攻击冷却（v3 定稿，可调）
+        range: 70,                         // 首目标扇形半径（与刀一致，可调）
+        arcHalfAngle: 55 * Math.PI / 180,  // 扇形半角（与刀一致，可调）
+        chainMaxTargets: 5,                // 连锁人数上限（含首目标，可调）
+        chainJumpRange: 180,               // 连锁跳跃最大目标间距离（可调）
+        lifestealPerHit: 0.01,             // 每命中一人吸血 1% 最大生命（可调）
+        dualChainMultiplier: 2,            // 双持叠加：连锁上限 ×2（5→10），吸血不变（方案 A 定稿）
+        hidden: true,                      // 隐藏武器标记（不入 Boss 必掉池、专属拾取提示）
+        sfx: 'gauntletSwing', color: '#ff7bd5',
+        desc: '隐藏武器。近战能量冲击，命中后连锁至多 5 名敌人（双持翻倍至 10 名），每命中一人回复 1% 最大生命。'
+      },
+      /* 隐藏武器"落日神弓"（bow_staff_lifesteal spec 决策项 1~6，全部可调）：远程 · 多向箭雨——
+         冷却 1.0s 慢输出换高爆发；五向 40° 对称扇形，单箭伤害 200（暴击/秒杀/掉落走子弹管线自动联动）；
+         命中附带 3s 灼烧（40/s、0.5s 一跳、刷新不叠加、对 Boss 生效）；双持箭数 ×2（5→10，方案 A 同构拳套） */
+      bow: {
+        id: 'bow', name: '落日神弓', type: 'ranged_multi',
+        damage: 200,                       // 单箭伤害（可调）
+        cooldown: 1.0,                     // 攻击冷却（推荐值，可调）
+        arrowCount: 5,                     // 单持箭数（可调）
+        spreadTotal: 40 * Math.PI / 180,   // 扇形总夹角 40°（对称分布于瞄准方向两侧，可调）
+        bulletSpeed: 620, bulletLife: 1.2, bulletRadius: 5,
+        dualArrowMultiplier: 2,            // 双持叠加：箭数 ×2（5→10），灼烧参数不变
+        burnDuration: 3,                   // 灼烧持续秒数（可调）
+        burnDps: 40,                       // 灼烧每秒伤害（可调）
+        burnInterval: 0.5,                 // 灼烧跳伤间隔秒数（可调）
+        hidden: true,                      // 隐藏武器标记（不入 Boss 必掉池、专属拾取提示）
+        sfx: 'bowShoot', sfxGet: 'bowGet', color: '#ffb640',
+        desc: '隐藏武器。向五个方向射出箭矢（双持翻倍至十支），每支伤害 200 并附带 3 秒灼烧（每秒 40 伤害，对 Boss 生效）。'
+      },
+      /* 隐藏武器"起源法杖"（spec 决策项 7~11，含用户定稿成长上限 +5000）：远程 · 法阵——
+         冷却 0.5s 高频施法；法阵 0.3s 预警后对半径 90 范围爆发；每命中一名敌人本局伤害永久 +1
+         （上限 +5000，双持成长速率 ×2 不抬上限）；施法位置 = 鼠标活跃窗口内取鼠标点，否则瞄准方向 × 240 */
+      staff: {
+        id: 'staff', name: '起源法杖', type: 'zone_cast',
+        damage: 80,                        // 法阵基础伤害（可调；爆发基数 = 基础 + staffGrowth）
+        cooldown: 0.5,                     // 攻击冷却（spec 定稿 0.5，可调）
+        castDistance: 240,                 // 无鼠标输入时的施法距离（沿瞄准方向，可调）
+        zoneRadius: 90,                    // 法阵判定半径（可调）
+        zoneDelay: 0.3,                    // 预警到爆发的延迟秒数（可调）
+        growthPerHit: 1,                   // 每命中一名敌人的局内成长值（可调）
+        growthCap: 5000,                   // 局内成长上限（用户定稿 +5000；软性数值安全网，实际增速受命中频率自然约束）
+        dualGrowthMultiplier: 2,           // 双持叠加：成长速率 ×2（每命中 +2），上限不抬高（v2 定稿）
+        hidden: true,                      // 隐藏武器标记
+        sfx: 'staffCast', sfxGet: 'staffGet', color: '#a78bff',
+        desc: '隐藏武器。在指定区域生成法阵，0.3 秒后爆发造成范围伤害；每命中一名敌人本局伤害永久 +1（上限 +5000，双持成长翻倍）。'
       }
     },
 
@@ -424,11 +524,20 @@ GAME.CONFIG = (function () {
       angleTolerance: 0.12,  // 扇形判定的角度容差（容纳敌人自身半径，弧度）
       knockDecay: 12,        // 击退速度指数衰减系数
       minCooldown: 0.15,     // 攻速增益下的冷却下限
-      bulletMargin: 60,      // 子弹出界回收的边界外余量
+      bulletMargin: 60,      // 子弹出界回收的边界外余量（elite_bullet_cull 后仅由玩家/队友子弹消费：60 > 敌人屏外生成偏移 40，保证火力覆盖刚入场还挂在屏缘外的敌人，design D7）
       /* 自动瞄准（决策 D3）：窗口过短会抢占手动方向、过长则桌面端自动瞄准不可达，1.2s 为平衡值 */
       autoAim: { mouseActiveWindow: 1200 },
       /* 清关清弹开关：清关判定成立时清除全部敌方子弹（仅作紧急回退用） */
-      clearEnemyBulletsOnClear: true
+      clearEnemyBulletsOnClear: true,
+      /* 敌方子弹出屏即逝开关（elite_bullet_cull spec 5.2.1 规则 1）：true 时敌方子弹按弹体
+         自身半径"完全出屏"口径当帧回收；false 为紧急回退（与玩家/队友共用 bulletMargin 统一口径，即既有行为） */
+      enemyBulletTightCull: true,
+      /* 屏外发射抑制开关（elite_bullet_cull spec 5.2.1 规则 2）：true 时发射者（精英/Boss）中心
+         位于视口内才允许发射，冷却保持就绪、入屏当帧恢复；false 为紧急回退（恢复屏外开火，即既有行为） */
+      enemyOffscreenFireBlock: true,
+      /* 新关卡开火缓冲（spec 5.1.1 规则 6）：新关入场后敌方禁止发射子弹的缓冲秒数
+         （v2 定稿 2.0 / v3 维持，仅约束发射新子弹，不约束敌人移动；取值可由用户调整） */
+      fireGraceTime: 2.0
     },
 
     /* 敌人定义与成长曲线（spec 6.3） */
@@ -437,8 +546,10 @@ GAME.CONFIG = (function () {
         /* dropRate 爆率已下调至约 1%（spec_rebalance）：清关三选一为增益主通道，小掉落降级为低频惊喜；精英保持 2 倍差异化 */
         melee_normal:  { key: 'melee_normal',  name: '普通近战', hpBase: 42, speedBase: 95,  touchDamage: 12, attackInterval: 0.8, radius: 13, dropRate: 0.01, color: '#ff4d5e', glowKey: 'red',    shape: 'triangle', ranged: false },
         melee_fast:    { key: 'melee_fast',    name: '快速近战', hpBase: 25, speedBase: 152, touchDamage: 8,  attackInterval: 0.6, radius: 10, dropRate: 0.01, color: '#ff7a6e', glowKey: 'red',    shape: 'dart',     ranged: false },
-        ranged_normal: { key: 'ranged_normal', name: '普通远程', hpBase: 38, speedBase: 80,  bulletDamage: 10, shootInterval: 2.2, bulletSpeed: 260, bulletRadius: 5, rangeMin: 260, rangeMax: 420, dropRate: 0.01, color: '#ff9d33', glowKey: 'orange', shape: 'circle', ranged: true },
-        ranged_elite:  { key: 'ranged_elite',  name: '精英远程', hpBase: 84, speedBase: 70,  bulletDamage: 14, shootInterval: 1.5, bulletSpeed: 340, bulletRadius: 5, rangeMin: 300, rangeMax: 480, burstCount: 3, burstSpread: 8 * Math.PI / 180, dropRate: 0.02, color: '#ffb640', glowKey: 'orange', shape: 'hex', ranged: true, radius: 17 }
+        ranged_normal: { key: 'ranged_normal', name: '普通远程', hpBase: 38, speedBase: 80,  bulletDamage: 10, shootInterval: 2.2, bulletSpeed: 260, bulletRadius: 5, rangeMin: 260, rangeMax: 420, dropRate: 0.01, color: '#ff9d33', glowKey: 'orange', shape: 'circle', ranged: true,
+          bulletLife: 4 }, // 已下线（elite_bullet_cull spec 5.1.1 规则 2 方案 b），恢复：mix.rangedNormal 改回 8；保留 bulletLife 保证回滚后射击寿命与改前一致
+        ranged_elite:  { key: 'ranged_elite',  name: '精英远程', hpBase: 84, speedBase: 70,  bulletDamage: 14, shootInterval: 1.5, bulletSpeed: 340, bulletRadius: 5, rangeMin: 300, rangeMax: 480, burstCount: 3, burstSpread: 8 * Math.PI / 180, dropRate: 0.02, color: '#ffb640', glowKey: 'orange', shape: 'hex', ranged: true, radius: 17,
+          bulletLife: 4 } // 敌方子弹寿命参数化提取（取值不变，design D5）；来源收缩后唯一普通敌人弹源
       },
       /* 成长曲线：数量/生命/移速/攻频均为层数增函数（spec 5.3.1 规则 5） */
       growth: {
@@ -449,8 +560,12 @@ GAME.CONFIG = (function () {
         /* 伤害成长（rebalance 新增维度，spec_rebalance 6.2.5）：伤害 ×(1+min(0.02N, 1.0))，第 50 层封顶翻倍 */
         damagePerLevel: 0.02, damageCap: 1.0
       },
-      /* 类型混入阈值：低层以普通近战为主，逐层混入新类型 */
-      mix: { fast: 5, rangedNormal: 8, rangedElite: 15 },
+      /* 类型混入阈值：低层以普通近战为主，逐层混入新类型（elite_bullet_cull 修订，design D1/D2）：
+         rangedNormal 置 Infinity = 普通远程已下线（spec 5.1.1 规则 2 方案 b，配置驱动下线——
+         rollType 的 level >= Infinity 恒为 false，逻辑零改动；恢复出场改回 8 即可）；
+         rangedElite 15 → 11 = 精英第 11 关起混入（第 10 关为 Boss 关不构造波次，阈值写 10 与 11
+         实际等效，取 11 语义精确；补偿第 8~9 关纯近战空窗的难度） */
+      mix: { fast: 5, rangedNormal: Infinity, rangedElite: 11 },
       /* 四边生成与分批入场 */
       spawn: {
         offset: 40,            // 生成点在边界外的偏移
@@ -480,6 +595,7 @@ GAME.CONFIG = (function () {
       volleyHalfAngle: 0.7,                  // 弹幕扇形半角
       volleySpeed: 300, volleySpeedPerIndex: 12,
       volleyDamage: 15, volleyDamagePerIndex: 2,
+      volleyLife: 6,                          // Boss 弹幕寿命参数化提取（取值不变，design D5）
       summonBase: 3,                         // 召唤数量 = 3 + 序号
       minionSafeDistance: 220,
       lastSkillPenalty: 0.3,                 // 防连发：同类刚用过的技能权重乘数
@@ -500,10 +616,16 @@ GAME.CONFIG = (function () {
         /* 第 8 种最稀有增益（spec 6.1）：small === high 不分档，每次恒 +0.1%；rare 标记用于小掉落池过滤与卡片专属样式 */
         instantKill: { type: 'instantKill', name: '秒杀概率', small: 0.001, high: 0.001, pct: true, rare: true,
           desc: '攻击命中时有概率直接秒杀普通敌人；对 Boss 触发概率减半，改为造成其最大生命 5% 的固定伤害（2 秒冷却）。',
-          bossNote: '对 BOSS：触发概率减半 · 固定 5% 最大生命伤害 · 2.0s 触发冷却' }
+          bossNote: '对 BOSS：触发概率减半 · 固定 5% 最大生命伤害 · 2.0s 触发冷却' },
+        /* 第 9 种增益"吸血"（bow_staff_lifesteal spec 5.6，rare 模式完整同构 instantKill 先例）：
+           按造成伤害的一定比例回血；small 3% / high 6% 两档；独立小怪掉落路 0.5%（低于常规增益 1%）；
+           灼烧与法阵伤害同样触发、队友伤害不触发、与拳套固有吸血独立并存 */
+        lifesteal: { type: 'lifesteal', name: '吸血', small: 0.03, high: 0.06, pct: true, rare: true,
+          desc: '按造成伤害的一定比例回复生命。',
+          bossNote: '灼烧与法阵伤害同样触发；队友伤害不触发。' }
       },
       /* 软上限（同类增益大量叠加的失衡兜底，spec 5.5.3 场景 1；instantKill 上限 10% 为决策 D） */
-      caps: { atk: 4.0, aspd: 2.5, speed: 1.8, crit: 1.0, pickup: 240, instantKill: 0.10 },
+      caps: { atk: 4.0, aspd: 2.5, speed: 1.8, crit: 1.0, pickup: 240, instantKill: 0.10, lifesteal: 0.30 },
       /* 候选生成参数（spec 6.2.1-5/9，决策 E 权重：常规 100 vs 秒杀 4/6 → 单次出现率约 2%/1.8%） */
       choice: {
         normalCount: 3,              // 三选一候选数量（spec 6.2.1）
@@ -511,6 +633,8 @@ GAME.CONFIG = (function () {
         baseWeight: 100,             // 常规增益基准权重（spec 6.2.3）
         instantKillWeightNormal: 4,  // 秒杀在三选一池的权重（spec 6.2.4，决策 E）
         instantKillWeightBoss: 6,    // 秒杀在二选一池的权重（spec 6.2.5，决策 E）
+        lifestealWeightNormal: 8,    // 吸血在三选一池的权重（rare 模式，约为秒杀两倍——两档数值更实用，spec 5.6.1 规则 4）
+        lifestealWeightBoss: 10,     // 吸血在二选一池的权重
         excludeCapped: true          // 已达软上限增益从候选剔除开关（spec 6.2.9，决策 H）
       },
       /* 秒杀增益的 Boss 战平衡参数（spec 6.2.6-8，决策 C v2：对 Boss 触发概率减半） */
@@ -523,6 +647,14 @@ GAME.CONFIG = (function () {
       expOrb:  { dropRate: 0.10 },                   // 经验球：普通敌人 10% 概率
       healPack: { dropRate: 0.01, healRatio: 0.30 }, // 血包：1% 概率，回复 30% 最大生命
       mate:    { dropRate: 0.30, spawnOffset: 12 },  // 队友：Boss 30% 概率 + 多掉落错位距离
+      /* 隐藏武器拳套两路独立掉落（spec 6.2/6.3）：小怪 0.01% / Boss 1%，
+         两路各自独立随机数判定，无保底无跨击杀累积；spawnOffset 为多掉落错位距离 */
+      gauntlet: { enemyDropRate: 0.0001, bossDropRate: 0.01, spawnOffset: 30 },
+      /* 隐藏武器神弓/法杖 + 吸血增益三路（bow_staff_lifesteal spec 5.1，全部独立随机数判定）：
+         神弓小怪 0.1% / Boss 5%；法杖小怪 0.1% / Boss 30%；吸血增益小怪 0.5%（small 档，复用 buff 通道） */
+      bow:       { enemyDropRate: 0.001, bossDropRate: 0.05, spawnOffset: 30 },
+      staff:     { enemyDropRate: 0.001, bossDropRate: 0.30, spawnOffset: 30 },
+      lifesteal: { enemyDropRate: 0.005 },
       weaponPool: ['knife', 'spear', 'pistol'],
       bossDropOffset: 30, // Boss 掉落物错开距离
       maxDrops: 24
@@ -590,18 +722,87 @@ GAME.CONFIG = (function () {
                     { src: 'tone', wave: 'sine',     f0: 660, f1: 660, dur: 0.12, vol: 0.18, delay: 0.09 }],
         mateGet:  [{ src: 'tone', wave: 'triangle', f0: 587, f1: 587, dur: 0.09, vol: 0.24 },
                     { src: 'tone', wave: 'triangle', f0: 740, f1: 740, dur: 0.09, vol: 0.24, delay: 0.09 },
-                    { src: 'tone', wave: 'triangle', f0: 880, f1: 880, dur: 0.14, vol: 0.26, delay: 0.18 }]
+                    { src: 'tone', wave: 'triangle', f0: 880, f1: 880, dur: 0.14, vol: 0.26, delay: 0.18 }],
+        /* 拳套/兑换事件音效（tone/noise 原子组合，AudioSys 零改动）：
+           gauntletSwing 锯齿扫频+高通噪声斩击感 / chainZap 高频方波短促电击（经 60ms 同名节流防连跳爆音）/
+           gauntletGet 三音锯齿琶音（区别于 pickup 双音与 mateGet 三角波）/ redeem 四音正弦琶音（仪式感最强） */
+        gauntletSwing: [{ src: 'tone',  wave: 'sawtooth', f0: 90,  f1: 380, dur: 0.14, vol: 0.30 },
+                        { src: 'noise', wave: 'highpass', f0: 2800, f1: 900, dur: 0.10, vol: 0.14 }],
+        chainZap:      [{ src: 'tone',  wave: 'square',   f0: 1800, f1: 2600, dur: 0.06, vol: 0.16 }],
+        gauntletGet:   [{ src: 'tone',  wave: 'sawtooth', f0: 660,  f1: 660,  dur: 0.10, vol: 0.24 },
+                        { src: 'tone',  wave: 'sawtooth', f0: 880,  f1: 880,  dur: 0.10, vol: 0.24, delay: 0.10 },
+                        { src: 'tone',  wave: 'sawtooth', f0: 1100, f1: 1100, dur: 0.16, vol: 0.26, delay: 0.20 }],
+        redeem:        [{ src: 'tone',  wave: 'sine',     f0: 523,  f1: 523,  dur: 0.10, vol: 0.26 },
+                        { src: 'tone',  wave: 'sine',     f0: 659,  f1: 659,  dur: 0.10, vol: 0.26, delay: 0.10 },
+                        { src: 'tone',  wave: 'sine',     f0: 784,  f1: 784,  dur: 0.10, vol: 0.26, delay: 0.20 },
+                        { src: 'tone',  wave: 'sine',     f0: 1046, f1: 1046, dur: 0.18, vol: 0.28, delay: 0.30 }],
+        /* 神弓/法杖/灼烧事件音效（bow_staff_lifesteal，tone/noise 原子组合，AudioSys 零改动）：
+           bowShoot 弓弦三角波上扫 + 高通噪声放箭 / burnTick 低频方波噼啪（60ms 同名节流防多目标爆音）/
+           staffCast 双音上行短吟唱 / staffBurst 锯齿低频冲击 + 噪声爆发 / staffGrow 成长上行短音 /
+           bowGet 三音三角波琶音 / staffGet 三音正弦琶音（三把隐藏武器拾取音各自可辨，D15） */
+        bowShoot:  [{ src: 'tone',  wave: 'triangle', f0: 196, f1: 880, dur: 0.16, vol: 0.28 },
+                    { src: 'noise', wave: 'highpass', f0: 2400, f1: 700, dur: 0.09, vol: 0.12 }],
+        burnTick:  [{ src: 'tone',  wave: 'square',   f0: 95,  f1: 60,  dur: 0.06, vol: 0.18 }],
+        staffCast: [{ src: 'tone',  wave: 'sine',     f0: 392, f1: 392, dur: 0.08, vol: 0.20 },
+                    { src: 'tone',  wave: 'sine',     f0: 587, f1: 587, dur: 0.10, vol: 0.20, delay: 0.07 }],
+        staffBurst: [{ src: 'tone', wave: 'sawtooth', f0: 130, f1: 40,  dur: 0.22, vol: 0.34 },
+                     { src: 'noise', wave: 'lowpass',  f0: 900, f1: 150, dur: 0.18, vol: 0.22 }],
+        staffGrow: [{ src: 'tone',  wave: 'sine',     f0: 880, f1: 1320, dur: 0.07, vol: 0.15 }],
+        bowGet:    [{ src: 'tone',  wave: 'triangle', f0: 523, f1: 523, dur: 0.10, vol: 0.24 },
+                    { src: 'tone',  wave: 'triangle', f0: 660, f1: 660, dur: 0.10, vol: 0.24, delay: 0.10 },
+                    { src: 'tone',  wave: 'triangle', f0: 784, f1: 784, dur: 0.15, vol: 0.26, delay: 0.20 }],
+        staffGet:  [{ src: 'tone',  wave: 'sine',     f0: 349, f1: 349, dur: 0.11, vol: 0.24 },
+                    { src: 'tone',  wave: 'sine',     f0: 523, f1: 523, dur: 0.11, vol: 0.24, delay: 0.10 },
+                    { src: 'tone',  wave: 'sine',     f0: 698, f1: 698, dur: 0.16, vol: 0.26, delay: 0.20 }]
       }
     },
 
     /* 界面时长 */
     ui: { toastTime: 1.8, toastFade: 0.5, introTime: 1.0, clearDelay: 0.8 },
 
+    /* 兑换码（spec 6.7）：唯一有效码值 fjs666，校验全程本地零网络请求（多码值体系另行立项） */
+    redeem: {
+      code: 'fjs666',               // 唯一有效码值（trim + 大小写不敏感精确匹配）
+      inputMaxLength: 32,           // 输入框最大长度
+      msgEmpty: '请输入兑换码',     // 空输入提示
+      msgInvalid: '兑换码无效',     // 错误码值提示
+      msgRedeemed: '该兑换码已兑换', // 幂等提示（重复提交无重复效果）
+      msgSuccess: '兑换成功：全部隐藏武器已加入初始武器选择', // 语义升级（D13）：fjs666 解锁全部三把隐藏武器，纯配置零逻辑改动
+      sfx: 'redeem'                 // 兑换成功专属音效
+    },
+
     /* 视觉特效参数 */
     fx: {
       slashLife: 0.12, thrustLife: 0.15, muzzleLife: 0.06, hitFlash: 0.08,
+      chainLife: 0.18, punchLife: 0.14, // 拳套连锁电弧 / 首目标冲击残影寿命（数秒内自动消散）
+      /* 法阵爆发与成长反馈（bow_staff_lifesteal design 2.5.1 D/G）：burst 冲击环 / burstAfter 余韵环 /
+         22 粒迸发 + 屏震 5px；staffSpark 成长记账同帧紫白小粒子迸发 */
+      burstLife: 0.25, burstAfterLife: 0.4,
+      burstParticles: 22, burstParticlePower: 210,
+      burstShake: 5, burstShakeLife: 0.18,
+      staffSparkCount: 10, staffSparkPower: 150,
       enemyDieParticles: [10, 14], bossDieParticles: 60, playerDieParticles: 40,
-      particleLife: [0.4, 0.8], floatLife: 0.7, floatSpeed: 44, trailLength: 8
+      particleLife: [0.4, 0.8], floatLife: 0.7, floatSpeed: 44, trailLength: 8,
+      /* 法阵预警绘制常量（design 2.5.1 B/C/G，D16：预警进度读法阵实体 t/maxT 单一时间源，无独立寿命键）：
+         虚线收缩环自 warnShrink×R 线性收缩 / 符文环 runes 刻度数 × spinSpeed 旋转 /
+         中心聚能核封顶 coreMaxR / 地面微光 glowAlpha / 双持第六环 dualInnerScale + 反向旋转 / flash 内嵌闪光时段 */
+      zone: {
+        rings: 3, warnShrink: 1.22, spinSpeed: 2.4,
+        runes: 8, coreMaxR: 16, glowAlpha: 0.28,
+        dualInnerScale: 0.62, dualRunes: 6, flashLife: 0.09
+      },
+      /* 灼烧视觉常量（design 2.5.2 B~H）：罩染脉冲 alpha 区间与频率 / 脉冲外环呼吸幅度 /
+         火焰粒子发射间隔·数量双档·散布·上飘基速·寿命尺寸乘数 / 跳伤火星 / 灰烬 /
+         刷新迸发 / 全局帧预算双档（超预算实体本帧跳过发射，信息层不降级） */
+      burn: {
+        tintPulseMin: 0.10, tintPulseMax: 0.16, tintHz: 3.2, ringBreath: 1.5,
+        flameInterval: 0.08, flameCountL: 2, flameCountH: 3,
+        flamePower: 46, flameRise: 64, flameLifeMul: 0.7, flameSizeMul: 0.8,
+        sparkCount: 5, sparkPower: 90,
+        ashCount: 4, ashDeathMul: 2, ashRise: 20, ashSizeMul: 0.6,
+        refreshSparkCount: 6, refreshBoostT: 0.1, refreshBoostMul: 1.6,
+        budgetL: 140, budgetH: 240
+      }
     },
 
     /* 屏幕震动分级（spec 5.6.1 规则 5） */
@@ -621,8 +822,18 @@ GAME.CONFIG = (function () {
       ikillText: '#ffe9a3', ikillEdge: 'rgba(255,77,94,0.9)', // 秒杀专属：亮金主体 + 红色描边（区别于暴击金）
       buffSmall: '#57ffa9', buffHigh: '#ffd24d', weaponDrop: '#c9b6ff',
       expOrb: '#57ffa9', healPack: '#ff6e8a', mateDrop: '#9db4ff', bulletMate: '#b8c7ff',
+      gauntletDrop: '#ff7bd5', chainArc: '#ff7bd5', healText: '#7dffd4', // 拳套掉落/连锁电弧品红 + 吸血回复绿字（决策 D8）
+      /* 神弓/法杖/灼烧/法阵配色（bow_staff_lifesteal design 2.4.2 B + 2.5.1 F + 2.5.2）：
+         神弓日落橙金系 / 法阵紫罗兰三段递进（zoneWarn→zoneBurst→zoneFlash 提亮两档）/
+         灼烧火红橙（burnTint 罩染·burnRing 外环·burnText 跳伤浮字）+ 火焰双色与火星灰烬 */
+      bowDrop: '#ffb640', staffDrop: '#a78bff', arrowBullet: '#ffb640',
+      burnText: '#ff9d33', burnRing: '#ff9d33', burnTint: '#ff6a3c',
+      burnFlameA: '#ff5a3c', burnFlameB: '#ff9d33', burnSpark: '#ffc06a', burnAsh: '#8a7a72',
+      zoneWarn: '#a78bff', zoneBurst: '#c9b6ff', zoneFlash: '#f2ecff',
       glow: { cyan: '#5ffbf1', red: '#ff5566', orange: '#ff9933', gold: '#ffd24d', purple: '#a78bff', white: '#ffffff',
-        mint: '#57ffa9', pink: '#ff6e8a', ice: '#9db4ff' }
+        mint: '#57ffa9', pink: '#ff6e8a', ice: '#9db4ff', magenta: '#ff7bd5',
+        sunset: '#ffb640', burnFlameA: '#ff5a3c', burnFlameB: '#ff9d33', burnSpark: '#ffc06a',
+        burnAsh: '#8a7a72', zoneBurst: '#c9b6ff' }
     }
   };
 
@@ -695,7 +906,7 @@ GAME.Storage = (function () {
   let persist = true;
 
   function defaultRecord() {
-    return { version: CONFIG.saveVersion, bestFloor: 0, bestKills: 0, bestBossKills: 0 };
+    return { version: CONFIG.saveVersion, bestFloor: 0, bestKills: 0, bestBossKills: 0, redeemed: false };
   }
   function validNum(n) {
     return typeof n === 'number' && isFinite(n) && n >= 0 && Math.floor(n) === n;
@@ -721,7 +932,9 @@ GAME.Storage = (function () {
       if (!d || typeof d !== 'object' || !validNum(d.bestFloor) || !validNum(d.bestKills) || !validNum(d.bestBossKills)) {
         return defaultRecord(); // 篡改/损坏兜底
       }
-      return { version: CONFIG.saveVersion, bestFloor: d.bestFloor, bestKills: d.bestKills, bestBossKills: d.bestBossKills };
+      /* redeemed 兑换状态：字段缺失/非法按未兑换兜底（旧存档零破坏，spec 4.5.3 / 5.6.1 规则 5a） */
+      return { version: CONFIG.saveVersion, bestFloor: d.bestFloor, bestKills: d.bestKills, bestBossKills: d.bestBossKills,
+        redeemed: typeof d.redeemed === 'boolean' ? d.redeemed : false };
     } catch (e) { return defaultRecord(); }
   }
   /* 写入：setItem + 回读比对；失败仅 console.warn，不中断调用方流程 */
@@ -827,6 +1040,9 @@ GAME.Input = (function () {
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
   function onKeyDown(e) {
+    /* 输入框聚焦隔离（决策 D11）：兑换码输入框键入期间游戏按键整体跳过——
+       空格不再被 preventDefault 吞掉、切枪/暂停在输入态无副作用 */
+    if (e.target && e.target.tagName === 'INPUT') return;
     if (!e.repeat) {
       keyTimes[e.code] = performance.now();
       if (e.code === 'Space') spaceDown = true;
@@ -931,7 +1147,16 @@ GAME.Input = (function () {
     pausePressed = false; slotPressed = 0; swapPressed = false; // 边沿字段每帧至多消费一次
     return out;
   }
-  return { init, poll, isTouchDevice: isTouchDevice };
+  /* 鼠标指针状态只读导出（bow_staff_lifesteal D5）：法杖施法位置的信号源——
+     active 与 poll 内瞄准分轨完全同源同判（mouseMoved && 活跃窗口内），
+     x/y 为当前鼠标 clientX/Y（Canvas 满屏固定定位，即游戏逻辑坐标）；纯只读无副作用 */
+  function pointerState() {
+    return {
+      active: !!(mouseMoved && performance.now() - mouseAimT < CONFIG.combat.autoAim.mouseActiveWindow),
+      x: mouseX, y: mouseY
+    };
+  }
+  return { init, poll, isTouchDevice: isTouchDevice, pointerState: pointerState };
 })();
 
 /* ============================================================
@@ -942,6 +1167,7 @@ GAME.World = (function () {
   const W = {
     enemies: [], boss: null, bullets: [], particles: [], floatTexts: [], drops: [], effects: [],
     mates: [], // 队友容器（无生命纯辅助，数量无上限，不入 limits 池体系——决策 D8）
+    zones: [], // 法阵实体容器（动态数组，bow_staff_lifesteal D3：并存数受"0.3s 寿命 × 0.15s 冷却下限"自然约束 ≤3，不入池体系）
     bulletPool: [], particlePool: [], floatTextPool: []
   };
 
@@ -959,6 +1185,7 @@ GAME.World = (function () {
   function reset() {
     W.enemies.length = 0; W.boss = null; W.drops.length = 0; W.effects.length = 0;
     W.mates.length = 0; // 局级清空队友（禁止跨局保留，spec 5.5.1 规则 12）
+    W.zones.length = 0; // 局级清空法阵（禁止跨局残留，bow_staff_lifesteal spec 4.2 红线）
     for (const b of W.bulletPool) b.active = false;
     for (const p of W.particlePool) p.active = false;
     for (const f of W.floatTextPool) f.active = false;
@@ -977,8 +1204,16 @@ GAME.World = (function () {
     W.bullets.push(b);
     return b;
   }
-  /* 粒子爆炸：超额时静默复用最旧粒子（裁剪上限策略） */
-  function spawnParticles(x, y, colorKey, count, power) {
+  /* 粒子爆炸：超额时静默复用最旧粒子（裁剪上限策略）
+     第 6 参 opts 定向锥扩展（bow_staff_lifesteal D18）：缺省 undefined 完全走既有全向随机路径
+     （既有全部调用零改动）；提供 opts 时每颗粒子速度 = 定向基速 (vx,vy) + 既有全向随机散布的矢量
+     合成（火焰上飘/火星轻抛/灰烬弱抛的锥形发射）；lifeMul/sizeMul 为寿命与初始尺寸乘数，
+     spawn 时一次性消费、落池即既有字段集（池更新/绘制/回收零改动）；字段缺失逐项缺省兜底 */
+  function spawnParticles(x, y, colorKey, count, power, opts) {
+    const vx0 = opts && typeof opts.vx === 'number' && isFinite(opts.vx) ? opts.vx : 0;
+    const vy0 = opts && typeof opts.vy === 'number' && isFinite(opts.vy) ? opts.vy : 0;
+    const lifeMul = opts && typeof opts.lifeMul === 'number' && isFinite(opts.lifeMul) && opts.lifeMul > 0 ? opts.lifeMul : 1;
+    const sizeMul = opts && typeof opts.sizeMul === 'number' && isFinite(opts.sizeMul) && opts.sizeMul > 0 ? opts.sizeMul : 1;
     for (let i = 0; i < count; i++) {
       let p = null;
       for (const cand of W.particlePool) { if (!cand.active) { p = cand; break; } }
@@ -992,14 +1227,14 @@ GAME.World = (function () {
       const ang = Math.random() * Math.PI * 2;
       const sp = Utils.rand(0.25, 1) * power;
       p.active = true; p.x = x; p.y = y;
-      p.vx = Math.cos(ang) * sp; p.vy = Math.sin(ang) * sp;
-      p.maxLife = Utils.rand(CONFIG.fx.particleLife[0], CONFIG.fx.particleLife[1]);
+      p.vx = Math.cos(ang) * sp + vx0; p.vy = Math.sin(ang) * sp + vy0; // 全向散布 + 定向基速合成
+      p.maxLife = Utils.rand(CONFIG.fx.particleLife[0], CONFIG.fx.particleLife[1]) * lifeMul;
       p.life = p.maxLife;
-      p.size = Utils.rand(2, 4.5); p.colorKey = colorKey;
+      p.size = Utils.rand(2, 4.5) * sizeMul; p.colorKey = colorKey;
       if (W.particles.indexOf(p) < 0) W.particles.push(p);
     }
   }
-  /* 浮动文字出生：第 4 参数兼容式扩展为样式枚举 'normal'|'crit'|'ikill'
+  /* 浮动文字出生：第 4 参数兼容式扩展为样式枚举 'normal'|'crit'|'ikill'|'heal'
      （布尔 true 归一为 'crit'，非枚举值归一为 'normal'——既有 3 处布尔调用零改动） */
   function spawnFloatText(x, y, text, style) {
     let f = null;
@@ -1013,6 +1248,11 @@ GAME.World = (function () {
     f.text = text;
     if (style === true || style === 'crit') f.style = 'crit';
     else if (style === 'ikill') f.style = 'ikill';
+    else if (style === 'heal') f.style = 'heal'; // 吸血回复绿字（拳套连锁，spec 5.5.1 规则 3）
+    else if (style === 'burn') { // 灼烧跳伤橙色小字（bow_staff_lifesteal design 2.5.2 D；上浮放缓余烬感）
+      f.style = 'burn';
+      f.vy = -CONFIG.fx.floatSpeed * 0.6;
+    }
     else f.style = 'normal';
     f.isCrit = f.style === 'crit'; // 保留旧字段（向后兼容）
     if (W.floatTexts.indexOf(f) < 0) W.floatTexts.push(f);
@@ -1021,9 +1261,11 @@ GAME.World = (function () {
     if (W.drops.length >= CONFIG.drops.maxDrops) W.drops.shift(); // 上限裁剪最旧
     W.drops.push({ kind: kind, tier: tier, payload: payload, x: x, y: y, bobT: Math.random() * 6.28 });
   }
-  /* 攻击特效实体（刀扇形残影 / 长枪突刺残影 / 枪口闪光） */
+  /* 攻击特效实体（刀扇形残影 / 长枪突刺残影 / 枪口闪光 / 拳套冲击与连锁电弧 / 法阵爆发冲击与余韵） */
   function addEffect(kind, x, y, angle, extra) {
-    const lifeMap = { slash: CONFIG.fx.slashLife, thrust: CONFIG.fx.thrustLife, muzzle: CONFIG.fx.muzzleLife };
+    const lifeMap = { slash: CONFIG.fx.slashLife, thrust: CONFIG.fx.thrustLife, muzzle: CONFIG.fx.muzzleLife,
+      punch: CONFIG.fx.punchLife, chain: CONFIG.fx.chainLife,
+      burst: CONFIG.fx.burstLife, burstAfter: CONFIG.fx.burstAfterLife };
     W.effects.push({ kind: kind, x: x, y: y, angle: angle, life: lifeMap[kind], maxLife: lifeMap[kind], extra: extra || {} });
   }
 
@@ -1130,6 +1372,9 @@ GAME.Combat = (function () {
     ws.cooldownT = Math.max(def.cooldown / player.aspdMul, CONFIG.combat.minCooldown);
     if (def.type === 'melee_arc') knifeAttack(player, def, aim);
     else if (def.type === 'melee_thrust') spearAttack(player, def, aim);
+    else if (def.type === 'melee_chain') gauntletAttack(player, def, aim); // 充能拳套：连锁攻击（对既有三武器零影响）
+    else if (def.type === 'ranged_multi') bowAttack(player, def, aim);     // 落日神弓：五向箭雨（bow_staff_lifesteal）
+    else if (def.type === 'zone_cast') staffAttack(player, def, aim);      // 起源法杖：法阵施法（bow_staff_lifesteal）
     else pistolAttack(player, def, aim);
     return true;
   }
@@ -1173,6 +1418,266 @@ GAME.Combat = (function () {
     World.addEffect('muzzle', mx, my, aim, { color: CONFIG.colors.muzzle });
     World.spawnBullet('player', mx, my, aim, def.bulletSpeed, def.damage, def.bulletRadius, 'player', def.bulletLife);
   }
+  /* 充能拳套连锁攻击入口（spec 5.3/5.4）：当帧同步完成全部跳跃结算（禁止跨帧悬置，规则 9）——
+     首目标扇形检索（与刀一致）→ 连锁循环（最近距离跳跃 + 每跳伤害/吸血/电弧）；
+     击杀的敌人交由帧内后续 World.cull 统一死亡结算（掉落判定含拳套两路，连锁清场可爆出第二把） */
+  function gauntletAttack(p, def, aim) {
+    /* 冲击特效 + 攻击音效（空挥也正常播放，spec 5.3.1 规则 2a） */
+    World.addEffect('punch', p.x, p.y, aim, { range: def.range, half: def.arcHalfAngle, color: def.color });
+    GAME.AudioSys.play(def.sfx);
+    /* 双持判定（一次性，决策 D7）：两槽均为拳套 → 连锁上限 ×dualChainMultiplier（5→10），
+       吸血比例不变（方案 A 定稿，spec 5.4.1 规则 2）；当次攻击内上限固定（禁止中途中间态） */
+    const dual = !!(p.slots[0] && p.slots[1] &&
+      p.slots[0].def.id === 'gauntlet' && p.slots[1].def.id === 'gauntlet');
+    const maxTargets = def.chainMaxTargets * (dual ? def.dualChainMultiplier : 1);
+    /* 首目标检索：扇形判定（半径 70/半角 55°，与刀完全一致，决策 D5）过滤存活敌人与非 spawn 态 Boss，
+       取距离平方最小者（与自动瞄准"最近优先"手感一致） */
+    let target = null, bestSq = Infinity;
+    for (const e of World.enemies) {
+      if (e.hp > 0 && Utils.sectorHit(p.x, p.y, aim, def.arcHalfAngle, def.range, e.x, e.y, e.radius)) {
+        const d = Utils.distSq(p.x, p.y, e.x, e.y);
+        if (d < bestSq) { bestSq = d; target = e; }
+      }
+    }
+    const bs = World.boss;
+    if (bs && bs.hp > 0 && bs.state !== 'spawn' &&
+        Utils.sectorHit(p.x, p.y, aim, def.arcHalfAngle, def.range, bs.x, bs.y, bs.radius)) {
+      const d = Utils.distSq(p.x, p.y, bs.x, bs.y);
+      if (d < bestSq) target = bs;
+    }
+    if (!target) return; // 空挥：无伤害/无连锁/无吸血（冷却已在 tryAttack 消耗）
+    /* 首目标结算 + 吸血 + 记入已命中集合（hitSet 以实体引用去重，含 Boss） */
+    const hitSet = new Set();
+    hitSet.add(target);
+    if (target === World.boss) hitBoss(p, def, target);
+    else hitEnemy(p, def, target);
+    lifestealHeal(p);
+    /* 连锁循环：每跳检索距当前目标最近的未命中存活目标（跳跃范围 180 内，含非 spawn 态 Boss）；
+       途中被同帧击杀的目标经 hp > 0 过滤天然跳过（连锁不空跳，spec 4.2.3 规则 3） */
+    let current = target;
+    while (hitSet.size < maxTargets) {
+      const next = findChainTarget(current.x, current.y, hitSet, def.chainJumpRange);
+      if (!next) break; // 无可跳目标 → 连锁终止
+      World.addEffect('chain', current.x, current.y, 0, { x2: next.x, y2: next.y, dual: dual }); // 逐跳独立电弧实体（决策 D14）
+      GAME.AudioSys.play('chainZap'); // 经既有 60ms 同名节流防连跳爆音
+      hitSet.add(next);
+      if (next === World.boss) hitBoss(p, def, next);
+      else hitEnemy(p, def, next);
+      lifestealHeal(p);
+      current = next;
+    }
+  }
+  /* 连锁目标检索（决策 D6）：与 findNearestEnemy 同构的线性遍历——遍历 enemies 与 boss
+     （hp > 0 且非 spawn 态），过滤已命中（hitSet）与跳跃范围外目标，距离平方最小者胜出 */
+  function findChainTarget(fromX, fromY, hitSet, jumpRange) {
+    let best = null, bestSq = jumpRange * jumpRange; // 距离平方 ≤ 跳跃范围²（规避开方）
+    for (const e of World.enemies) {
+      if (e.hp <= 0 || hitSet.has(e)) continue;
+      const d = Utils.distSq(fromX, fromY, e.x, e.y);
+      if (d < bestSq) { bestSq = d; best = e; }
+    }
+    const b = World.boss;
+    if (b && b.hp > 0 && b.state !== 'spawn' && !hitSet.has(b)) {
+      const d = Utils.distSq(fromX, fromY, b.x, b.y);
+      if (d < bestSq) best = b;
+    }
+    return best;
+  }
+  /* 吸血结算（拳套固有，spec 5.3.1 规则 6）：每命中一人回复 1% 最大生命并封顶；
+     满血钳制无数值变化不报错（spec 4.2.5）；实际回复量达阈值时生成绿色回复浮字 */
+  function lifestealHeal(p) {
+    const before = p.hp;
+    p.hp = Math.min(p.hp + p.maxHp * CONFIG.weapons.gauntlet.lifestealPerHit, p.maxHp);
+    const healed = p.hp - before;
+    if (healed >= 0.5) World.spawnFloatText(p.x, p.y - 18, '+' + Math.round(healed), 'heal');
+  }
+  /* 吸血增益结算（bow_staff_lifesteal 接口组四）：按实际结算伤害 × lifestealRate 回血并封顶——
+     与拳套固有 lifestealHeal（按命中数）两套独立机制并存（spec 5.6.1 规则 8）；
+     lifestealRate ≤ 0 入口短路（常数开销，未获增益时零成本）；非法 dmg 钳 0 跳过；
+     实际回血量 ≥ 0.5 阈值生成 heal 绿字（节流口径对齐拳套先例） */
+  function lifestealOnDamage(player, dmg) {
+    if (player.lifestealRate <= 0) return;
+    const d = (typeof dmg === 'number' && isFinite(dmg) && dmg > 0) ? dmg : 0;
+    if (d <= 0) return;
+    const before = player.hp;
+    player.hp = Math.min(player.hp + d * player.lifestealRate, player.maxHp);
+    const healed = player.hp - before;
+    if (healed >= 0.5) World.spawnFloatText(player.x, player.y - 18, '+' + Math.round(healed), 'heal');
+  }
+  /* 落日神弓五向箭雨（bow_staff_lifesteal spec 5.2，D1）：箭矢复用既有玩家子弹池——
+     owner 'player'（出屏 60px 余量分轨/命中管线/暴击秒杀掉落全联动自动继承）、style 'arrow'
+     承担渲染分派与灼烧来源判定双职责；空放无目标要求（spec 5.2.1 规则 6） */
+  function bowAttack(p, def, aim) {
+    GAME.AudioSys.play(def.sfx);
+    /* 双持判定（一次性，对齐拳套 D7 模式）：两槽均为神弓 → 箭数 ×dualArrowMultiplier（5→10）；
+       当次攻击内箭数固定（禁止中途中间态）；灼烧参数不随双持变化 */
+    const dual = !!(p.slots[0] && p.slots[1] &&
+      p.slots[0].def.id === 'bow' && p.slots[1].def.id === 'bow');
+    const n = def.arrowCount * (dual ? def.dualArrowMultiplier : 1);
+    const mx = p.x + Math.cos(aim) * (p.radius + 6);
+    const my = p.y + Math.sin(aim) * (p.radius + 6);
+    World.addEffect('muzzle', mx, my, aim, { color: def.color });
+    /* 扇形均匀角度：aim + (i - (n-1)/2) × spreadTotal/(n-1)——n=5 → ±20°/±10°/0°（总夹角恒 40°）；
+       n=1 退化单发（防除零：分母 n-1 为 0 时全部取 aim） */
+    const step = n > 1 ? def.spreadTotal / (n - 1) : 0;
+    for (let i = 0; i < n; i++) {
+      const a = aim + (i - (n - 1) / 2) * step;
+      World.spawnBullet('player', mx, my, a, def.bulletSpeed, def.damage, def.bulletRadius, 'arrow', def.bulletLife);
+    }
+  }
+  /* 起源法杖施法（bow_staff_lifesteal spec 5.4，D5/D7/D8）：施法位置分轨推导 + 法阵实体生成
+     ——鼠标活跃窗口内取鼠标坐标，否则玩家位置沿瞄准方向 × castDistance（超视口坐标不钳制，
+     spec 5.4.3 场景 5）；growthRate 由攻击时刻双持判定锁定于实体（防 0.3s 预警期内切枪中间态）；
+     baseDamage 快照防武器定义引用耦合；空放无目标要求 */
+  function staffAttack(p, def, aim) {
+    GAME.AudioSys.play(def.sfx);
+    const ps = GAME.Input.pointerState();
+    const cx = ps.active ? ps.x : p.x + Math.cos(aim) * def.castDistance;
+    const cy = ps.active ? ps.y : p.y + Math.sin(aim) * def.castDistance;
+    const dual = !!(p.slots[0] && p.slots[1] &&
+      p.slots[0].def.id === 'staff' && p.slots[1].def.id === 'staff');
+    World.zones.push({
+      x: cx, y: cy, radius: def.zoneRadius,
+      t: def.zoneDelay, maxT: def.zoneDelay,
+      baseDamage: def.damage,                                  // 生成时刻快照（D8）
+      growthRate: def.growthPerHit * (dual ? def.dualGrowthMultiplier : 1) // 双持速率锁定（D7：双持 ×2 不抬上限）
+    });
+  }
+  /* 灼烧施加与刷新（bow_staff_lifesteal D10）：burnT 恒置满（刷新语义，强度不变）+
+     burnTickT 重置 interval（首次施加与重复施加均为"重新点燃"——神弓冷却 1.0s > 跳间隔 0.5s，
+     重置不会推迟首跳）；参数读 CONFIG.weapons.bow（施加来源唯一，spec 5.3.1 规则 5）；
+     刷新分支同帧迸发 refreshSparkCount 粒火星（design 2.5.2 F，计入全局帧预算） */
+  function applyBurn(target) {
+    const bdef = CONFIG.weapons.bow;
+    const refresh = target.burnT > 0;
+    target.burnT = bdef.burnDuration;
+    target.burnTickT = bdef.burnInterval;
+    if (refresh) {
+      World.spawnParticles(target.x, target.y, 'burnSpark', CONFIG.fx.burn.refreshSparkCount, 60, { vy: -30 });
+    }
+  }
+  /* 灼烧逐帧结算（bow_staff_lifesteal D2/D9，接口组二）：遍历 enemies 与 boss 对 burnT > 0 实体——
+     ① 双计时递减；② burnTickT 归零结算一跳：固定伤害 burnDps × burnInterval（配置派生，不走
+     rollDamage/rollInstantKill——不吃攻击系数/暴击/秒杀，spec 5.3.1 规则 2 定稿）+ burn 橙色浮字
+     + 吸血钩子（灼烧为玩家来源伤害，spec 5.6.1 规则 6a）+ 跳伤火星 + 周期续推；
+     ③ burnT 归零自然到期：发射灰烬粒子（熄灭余灰，design 2.5.2 E）；
+     ④ 跳结算致死：灰烬主导死亡反馈（火星 + ashDeathMul 倍灰烬），死亡统一交 World.cull（掉落全联动）；
+     ⑤ 持续火焰粒子：每 flameInterval 一批定向锥上飘（D18 opts），受全局帧预算钳制（design 2.5.2 G——
+     预算内按遍历序先到先得，超预算实体本帧跳过发射仅保留罩染外环；信息层火星/灰烬不降级） */
+  function updateBurn(dt, player) {
+    const bdef = CONFIG.weapons.bow;
+    const fxc = CONFIG.fx.burn;
+    const tickDmg = bdef.burnDps * bdef.burnInterval; // 配置派生固定跳伤（40 × 0.5 = 20）
+    const budget = GAME.Input.isTouchDevice ? fxc.budgetL : fxc.budgetH;
+    let emitted = 0; // 本帧已发射火焰粒子量（预算计数）
+    /* 档位批量读取（函数级常量，循环内零重复属性读取） */
+    const flameInterval = fxc.flameInterval;
+    const flameCount = GAME.Input.isTouchDevice ? fxc.flameCountL : fxc.flameCountH;
+    const now = performance.now();
+    function burnEntity(t) {
+      if (t.burnT <= 0) return;
+      const wasAlive = t.hp > 0;
+      t.burnT -= dt;
+      t.burnTickT -= dt;
+      /* 跳结算（周期续推：一次 dt 跨多跳时循环追平，防大帧丢跳；
+         条件不含 burnT > 0——t=3.0s 边界帧 burnT 与 burnTickT 同时归零时仍结算第 6 跳，保证"3 秒恰 6 跳"） */
+      while (t.burnTickT <= 0 && t.hp > 0) {
+        t.burnTickT += bdef.burnInterval;
+        t.hp -= tickDmg;
+        World.spawnFloatText(t.x, t.y - t.radius - 4, String(Math.round(tickDmg)), 'burn');
+        World.spawnParticles(t.x, t.y, 'burnSpark', fxc.sparkCount, fxc.sparkPower, { vy: -30 });
+        lifestealOnDamage(player, tickDmg);
+        if (t.hp <= 0) { // 灼烧致死：灰烬主导死亡反馈（2 倍灰烬 + 火星，design 2.5.2 E）
+          World.spawnParticles(t.x, t.y, 'burnAsh', fxc.ashCount * fxc.ashDeathMul, 50, { vy: -fxc.ashRise, sizeMul: fxc.ashSizeMul, lifeMul: 0.9 });
+          World.spawnParticles(t.x, t.y, 'burnSpark', fxc.sparkCount, fxc.sparkPower, { vy: -30 });
+          GAME.AudioSys.play('burnTick');
+          return;
+        }
+        GAME.AudioSys.play('burnTick'); // 经既有 60ms 同名节流防多目标爆音
+      }
+      /* 自然到期：熄灭灰烬（"燃烧熄灭"干脆语义，无渐隐残留） */
+      if (t.burnT <= 0) {
+        t.burnT = 0; t.burnTickT = 0;
+        World.spawnParticles(t.x, t.y, 'burnAsh', fxc.ashCount, 40, { vy: -fxc.ashRise, sizeMul: fxc.ashSizeMul });
+        return;
+      }
+      /* 持续火焰粒子（预算内发射；死亡实体 hp ≤ 0 时跳过——同帧致死由致死分支的灰烬接管） */
+      if (t.hp > 0 && emitted < budget) {
+        /* 发射节流：performance.now() 时间片取模近似间隔控制（无需逐实体累计字段，design 2.5.2 G 字段最小化；
+           双重取模归一防屏外负坐标实体相位为负导致的每帧误发射） */
+        const phase = ((now * 0.001 + t.x * 0.01) % flameInterval + flameInterval) % flameInterval;
+        if (phase < dt || flameInterval <= dt) {
+          const ox = Utils.rand(-t.radius * 0.6, t.radius * 0.6);
+          const oy = Utils.rand(-t.radius * 0.6, t.radius * 0.6);
+          /* 双色随机 + 每 3 粒 1 粒火星点缀（红→橙→黄观感渐变，design 2.5.2 C） */
+          for (let i = 0; i < flameCount && emitted < budget; i++) {
+            const key = (i + Math.floor(now * 0.001 * 13)) % 3 === 0 ? 'burnSpark' :
+              (Math.random() < 0.5 ? 'burnFlameA' : 'burnFlameB');
+            World.spawnParticles(t.x + ox, t.y + oy, key, 1, fxc.flamePower,
+              { vy: -fxc.flameRise, lifeMul: fxc.flameLifeMul, sizeMul: fxc.flameSizeMul });
+            emitted++;
+          }
+        }
+      }
+    }
+    for (const e of World.enemies) burnEntity(e);
+    const b = World.boss;
+    if (b && b.hp > 0) burnEntity(b);
+  }
+  /* 法阵倒计时与爆发结算（bow_staff_lifesteal D3/D8，接口组二）：倒序遍历（swap-remove 友好）——
+     ① 预警期 t > 0 仅递减不结算（敌人可走入/走出，spec 5.4.1 规则 3a）；
+     ② t ≤ 0 爆发当帧原子完成：伤害基数 = baseDamage + staffGrowth（爆发时刻最新成长值，D8），
+        范围判定 distSq ≤ (radius + 目标半径)²，逐目标 hitEnemy/hitBoss（source 缺省 'player'——
+        暴击/秒杀/吸血全联动，spec 5.4.1 规则 6a）；③ 成长记账 min(N × growthRate, cap - staffGrowth)
+        一次性累加（封顶钳制，双持不抬上限）+ 成长浮字 + 紫白小粒子迸发 + staffGrow 音效；
+     ④ 空范围空结算正常完成且同样走完整爆发视觉（spec 4.2.6）；⑤ 爆发特效 + 屏震 + 当帧移除 */
+  function updateZones(dt, player) {
+    const zones = World.zones;
+    for (let i = zones.length - 1; i >= 0; i--) {
+      const z = zones[i];
+      z.t -= dt;
+      if (z.t > 0) continue; // 预警期
+      /* 爆发结算（当帧原子完成） */
+      const sdef = CONFIG.weapons.staff;
+      const base = z.baseDamage + player.staffGrowth; // 爆发时刻最新成长值（D8）
+      const zoneDef = { damage: base, sfx: 'hit' };   // 伪 def 先例：rollDamage 只消费 damage 字段
+      let hits = 0;
+      for (const e of World.enemies) {
+        if (e.hp > 0) {
+          const rr = z.radius + e.radius;
+          if (Utils.distSq(z.x, z.y, e.x, e.y) <= rr * rr) {
+            hitEnemy(player, zoneDef, e); // source 缺省 'player' → 吸血联动
+            hits++;
+          }
+        }
+      }
+      const bs = World.boss;
+      if (bs && bs.hp > 0 && bs.state !== 'spawn') {
+        const rr = z.radius + bs.radius;
+        if (Utils.distSq(z.x, z.y, bs.x, bs.y) <= rr * rr) {
+          hitBoss(player, zoneDef, bs);
+          hits++;
+        }
+      }
+      /* 成长记账：命中数 > 0 时一次累加（封顶钳制）+ 反馈（D14：成长浮字承担反馈，不同步 refreshWeapons） */
+      if (hits > 0) {
+        const grow = Math.min(hits * z.growthRate, sdef.growthCap - player.staffGrowth);
+        if (grow > 0) {
+          player.staffGrowth += grow;
+          World.spawnFloatText(z.x, z.y - z.radius - 8, '法杖 +' + grow, 'heal');
+          World.spawnParticles(z.x, z.y, 'zoneBurst', CONFIG.fx.staffSparkCount, CONFIG.fx.staffSparkPower);
+          GAME.AudioSys.play('staffGrow');
+        }
+      }
+      /* 爆发视觉：burst 冲击环 + burstAfter 余韵 + 22 粒迸发 + 屏震（空爆发同样完整反馈，spec 4.2.6） */
+      World.addEffect('burst', z.x, z.y, 0, { radius: z.radius });
+      World.addEffect('burstAfter', z.x, z.y, 0, { radius: z.radius });
+      World.spawnParticles(z.x, z.y, 'zoneBurst', CONFIG.fx.burstParticles, CONFIG.fx.burstParticlePower);
+      GAME.Render.shake(CONFIG.fx.burstShake);
+      GAME.AudioSys.play('staffBurst');
+      zones[i] = zones[zones.length - 1]; zones.pop(); // 当帧 swap-remove（禁止残留二次判定，spec 5.4.1 规则 11a）
+    }
+  }
   /* 暴击结算：每次命中独立 roll，伤害 = 武器伤害 × 攻击系数 × (暴击 ? 倍率 : 1)，向下取整 */
   function rollDamage(player, def) {
     const isCrit = Math.random() < player.critRate;
@@ -1189,8 +1694,10 @@ GAME.Combat = (function () {
     return Math.random() < chance;
   }
   /* 敌人受击：秒杀分支（第 1 优先级）→ 常规扣血 + 闪白 + 伤害数字 + 音效（死亡结算统一在 World.cull）
-     返回 true 表示本次命中已致死（秒杀），调用方可据此跳过击退等后续动作 */
-  function hitEnemy(player, def, e) {
+     返回 true 表示本次命中已致死（秒杀），调用方可据此跳过击退等后续动作
+     第 4 参 source（bow_staff_lifesteal D6，缺省 'player'）：伤害来源——'mate' 队友子弹不触发吸血增益
+     （spec 5.6.1 规则 6）；普通敌人秒杀分支无结算值不挂吸血（spec 5.6.3 场景 3）；既有调用零改动 */
+  function hitEnemy(player, def, e, source) {
     if (rollInstantKill(player, false)) {
       /* 秒杀：hp 归零，由 World.cull 同帧统一走既有死亡结算（粒子/击杀数/小掉落/音效/屏震零新增代码） */
       e.hp = 0;
@@ -1203,11 +1710,13 @@ GAME.Combat = (function () {
     e.hitFlashT = CONFIG.fx.hitFlash;
     World.spawnFloatText(e.x, e.y - e.radius - 4, String(r.dmg), r.isCrit);
     GAME.AudioSys.play('hit');
+    if (source !== 'mate' && player.lifestealRate > 0) lifestealOnDamage(player, r.dmg);
     return false;
   }
   /* Boss 受击：秒杀分支（先查冷却再 roll 概率——冷却期内完全跳过随机数生成）→ 常规扣血 + 实体震动
-     秒杀对 Boss = 减半概率触发 + 最大生命 5% 固定伤害 + 2 秒冷却（决策 C v2 三要点，spec 5.3.1 规则 3） */
-  function hitBoss(player, def, b) {
+     秒杀对 Boss = 减半概率触发 + 最大生命 5% 固定伤害 + 2 秒冷却（决策 C v2 三要点，spec 5.3.1 规则 3）
+     第 4 参 source 同 hitEnemy：秒杀固定伤害为实际结算值 → 触发吸血（spec 5.6.1 规则 6）；常规路径同挂 */
+  function hitBoss(player, def, b, source) {
     const ik = CONFIG.drops.instantKill;
     if (player.instantKillRate > 0 && b.ikCd <= 0 && rollInstantKill(player, true)) {
       const dmg = Math.ceil(b.maxHp * ik.bossDamageRatio); // 5% 最大生命固定伤害（向上取整保证低血 Boss 也有伤害）
@@ -1216,6 +1725,7 @@ GAME.Combat = (function () {
       b.ikCd = ik.bossCooldown;            // 触发成功才进入 2.0s 冷却
       World.spawnFloatText(b.x, b.y - b.radius - 6, '秒杀 -' + dmg, 'ikill');
       GAME.AudioSys.play('ikill');
+      if (source !== 'mate' && player.lifestealRate > 0) lifestealOnDamage(player, dmg); // 实际结算值触发吸血
       return; // 短路本次命中的暴击与常规结算（hp ≤ 0 由 cull 走正常 Boss 死亡链）
     }
     const r = rollDamage(player, def);
@@ -1223,10 +1733,17 @@ GAME.Combat = (function () {
     b.shakeT = CONFIG.boss.hitShakeTime;
     World.spawnFloatText(b.x, b.y - b.radius - 6, String(r.dmg), r.isCrit);
     GAME.AudioSys.play('bossHit');
+    if (source !== 'mate' && player.lifestealRate > 0) lifestealOnDamage(player, r.dmg);
   }
   /* 子弹更新：飞行 + 出界回收 + 圆-圆命中判定（按归属分派结算） */
   function updateBullets(dt, player) {
     const R = GAME.Render;
+    /* 出屏口径分轨预读（elite_bullet_cull spec 5.2.1 规则 1/4，design 决策 D3）：
+       玩家/队友子弹维持既有 60px 余量（覆盖屏缘外 40px 生成入场的敌人，规则 4）；
+       敌方子弹按"完全出屏当帧回收"口径——margin 取弹体自身半径（中心出界距离超过半径
+       ⟺ 弹体最后一像素离开视口；防错关键：符号为 +b.radius 正数，负数会使弹体大半在屏内即被回收） */
+    const marginPlayer = CONFIG.combat.bulletMargin;
+    const tightCull = CONFIG.combat.enemyBulletTightCull;
     for (const b of World.bullets) {
       if (!b.active) continue;
       /* 拖尾：环形记录最近 N 帧坐标（扁平数组） */
@@ -1235,23 +1752,27 @@ GAME.Combat = (function () {
       if (b.trail.length > maxTrail) b.trail.splice(0, b.trail.length - maxTrail);
       b.x += b.vx * dt; b.y += b.vy * dt;
       b.life -= dt;
-      const m = CONFIG.combat.bulletMargin;
+      const m = (tightCull && b.owner === 'enemy') ? b.radius : marginPlayer;
       if (b.life <= 0 || b.x < -m || b.x > R.W + m || b.y < -m || b.y > R.H + m) {
-        b.active = false; continue; // 出界/超时回收
+        b.active = false; continue; // 出界/超时回收（出屏先于命中：同帧不再参与命中结算，spec 4.2.2）
       }
       if (b.owner !== 'enemy') {
-        /* 玩家/队友子弹 → 敌人 / Boss（mate 子弹同走命中管线：暴击/秒杀/击杀统计/掉落 roll 自动联动） */
+        /* 玩家/队友子弹 → 敌人 / Boss（mate 子弹同走命中管线：暴击/秒杀/击杀统计/掉落 roll 自动联动）
+           source 传 b.owner（bow_staff_lifesteal D6）：'mate' 子弹天然排除吸血增益（spec 5.6.1 规则 6）；
+           arrow 样式箭矢命中同帧追加灼烧施加（D10：不依赖本体是否暴击/秒杀，spec 5.2.1 规则 5） */
         let consumed = false;
         for (const e of World.enemies) {
           if (e.hp > 0 && Utils.circleHit(b.x, b.y, b.radius, e.x, e.y, e.radius)) {
-            hitEnemy(player, { damage: b.damage, sfx: 'hit' }, e);
+            hitEnemy(player, { damage: b.damage, sfx: 'hit' }, e, b.owner);
+            if (b.style === 'arrow') applyBurn(e);
             b.active = false; consumed = true; break;
           }
         }
         if (consumed) continue;
         const bs = World.boss;
         if (bs && bs.hp > 0 && bs.state !== 'spawn' && Utils.circleHit(b.x, b.y, b.radius, bs.x, bs.y, bs.radius)) {
-          hitBoss(player, { damage: b.damage }, bs);
+          hitBoss(player, { damage: b.damage }, bs, b.owner);
+          if (b.style === 'arrow') applyBurn(bs);
           b.active = false;
         }
       } else {
@@ -1274,9 +1795,10 @@ GAME.Combat = (function () {
     World.spawnFloatText(p.x, p.y - p.radius - 6, '-' + Math.round(dmg), false); // 浮字显示取整（消除浮点长尾）；结算层保持浮点精确
     if (p.hp <= 0) { p.hp = 0; GAME.Game.onPlayerDeath(); }
   }
-  /* hitEnemy/hitBoss 一并导出：秒杀判定与受击结算的确定性验证入口（测试/调试用） */
+  /* hitEnemy/hitBoss 一并导出：秒杀判定与受击结算的确定性验证入口（测试/调试用）；
+     updateZones/updateBurn/lifestealOnDamage：法阵/灼烧每帧结算与吸血结算导出（bow_staff_lifesteal 接口组二/四） */
   return { update: update, tryAttack: tryAttack, updateBullets: updateBullets, damagePlayer: damagePlayer,
-    hitEnemy: hitEnemy, hitBoss: hitBoss };
+    hitEnemy: hitEnemy, hitBoss: hitBoss, updateZones: updateZones, updateBurn: updateBurn, lifestealOnDamage: lifestealOnDamage };
 })();
 
 /* ============================================================
@@ -1309,7 +1831,8 @@ GAME.EnemyAI = (function () {
       shootCd: def.ranged ? def.shootInterval * Utils.rand(0.5, 1.2) : 0, // 随机相位防同步齐射
       touchCd: 0, hitFlashT: 0,
       knockVX: 0, knockVY: 0,
-      orbitDir: Math.random() < 0.5 ? 1 : -1 // 远程环绕方向（随机 ±）
+      orbitDir: Math.random() < 0.5 ? 1 : -1, // 远程环绕方向（随机 ±）
+      burnT: 0, burnTickT: 0 // 灼烧状态（bow_staff_lifesteal D2：剩余时长 + 跳计时，随实体生灭；四类敌人统一字段集口径延续）
     };
     World.enemies.push(e);
     return e;
@@ -1318,6 +1841,7 @@ GAME.EnemyAI = (function () {
   /* 敌人 AI 主循环：近战永远朝玩家追击；远程维持交战区间 + 周期射击 */
   function update(dt, player) {
     const R = GAME.Render;
+    const block = CONFIG.combat.enemyOffscreenFireBlock; // 屏外发射抑制开关（函数级预读，循环内零重复属性读取）
     for (const e of World.enemies) {
       if (e.hp <= 0) continue;
       e.hitFlashT -= dt; e.touchCd -= dt;
@@ -1338,15 +1862,21 @@ GAME.EnemyAI = (function () {
         if (dist > d.rangeMax) { mvx = nx; mvy = ny; }             // 过远 → 接近
         else if (dist < d.rangeMin) { mvx = -nx; mvy = -ny; }      // 过近 → 后退
         else { mvx = -ny * e.orbitDir * 0.6; mvy = nx * e.orbitDir * 0.6; } // 区间内 → 环绕游走
-        /* 射击冷却结束 → 朝玩家发射（精英为 3 连发扇形） */
+        /* 射击冷却结束 → 朝玩家发射（精英为 3 连发扇形）；
+           开火缓冲追加判定：新关入场后 2.0s 内冷却就绪也不发射，缓冲结束后按既有周期恢复（spec 5.1.1 规则 6）；
+           屏外发射抑制（elite_bullet_cull spec 5.2.1 规则 2，design 决策 D4）：发射者中心位于视口内才允许
+           发射（置于 && 链末位，屏外敌人常态下零额外求值）——消除屏外冷枪（看不到弹源却挨打），并与出屏
+           即逝配套消除"屏外出生当帧即被回收的隐形吞弹"（屏内发射 ⟹ 出生帧必然存活）；
+           屏外时冷却保持就绪（不重置），入屏后下一次判定当帧即发射（无悬挂"待发射"中间态，spec 4.2.3） */
         e.shootCd -= dt;
-        if (e.shootCd <= 0 && dist < d.rangeMax * 1.25) {
+        if (e.shootCd <= 0 && dist < d.rangeMax * 1.25 && GAME.LevelGen.L.fireGraceT <= 0
+            && (!block || (e.x >= 0 && e.x <= R.W && e.y >= 0 && e.y <= R.H))) {
           e.shootCd = d.shootInterval / (1 + CONFIG.enemies.growth.fireRatePerLevel * e.level);
           const aimBase = Math.atan2(dy, dx);
           const burst = d.burstCount || 1;
           for (let i = 0; i < burst; i++) {
             const a = aimBase + (i - (burst - 1) / 2) * (d.burstSpread || 0);
-            World.spawnBullet('enemy', e.x, e.y, a, d.bulletSpeed, e.bulletDamage, d.bulletRadius, 'enemy', 4); // 子弹伤害取成长后实体字段（rebalance）
+            World.spawnBullet('enemy', e.x, e.y, a, d.bulletSpeed, e.bulletDamage, d.bulletRadius, 'enemy', d.bulletLife); // 子弹伤害取成长后实体字段；寿命参数化引用（design D5）
           }
         }
       }
@@ -1424,7 +1954,8 @@ GAME.BossAI = (function () {
       state: 'spawn', stateT: cfg.spawnTime,
       skillTimer: cfg.skillInterval * 0.6, // 首次技能稍快
       lastSkills: [], volleyAngle: 0, chargeAngle: 0, chargeDist: 0, hitPlayer: false,
-      shakeT: 0, touchCd: 0, rot: 0, ikCd: 0 // ikCd：秒杀对 Boss 的触发冷却（随 Boss 实体生灭，spec 6.3.3）
+      shakeT: 0, touchCd: 0, rot: 0, ikCd: 0, // ikCd：秒杀对 Boss 的触发冷却（随 Boss 实体生灭，spec 6.3.3）
+      burnT: 0, burnTickT: 0 // 灼烧状态（bow_staff_lifesteal D2：对 Boss 照常生效，spec 5.3.1 规则 4）
     };
     World.spawnParticles(World.boss.x, World.boss.y, 'gold', 20, 180);
     GAME.AudioSys.play('bossWarn');
@@ -1488,12 +2019,21 @@ GAME.BossAI = (function () {
         break;
       }
       case 'volley': { /* 扇形弹幕：朝锁定方向 ±半角等间隔多发（弹间预留可走位间隙） */
+        /* 开火缓冲判定（决策 D12）：缓冲期内跳过本轮弹幕转冷却延迟一轮（技能循环继续）——
+           覆盖高序号 Boss 首技能 1.72s < 2.0s 的弹幕窗口，spec 5.1.1 规则 6 对"敌方"全覆盖 */
+        if (GAME.LevelGen.L.fireGraceT > 0) { toCooldown(b); break; }
+        /* 屏外发射抑制（elite_bullet_cull spec 5.2.1 规则 2a，design 决策 D6）：Boss 中心在视口外时
+           本轮弹幕被抑制并转 cooldown 延迟一轮（与缓冲期处理同构，防无限期滞留 volley 态）——
+           Boss 现状恒屏内（屏内生成 + 非 spawn 态位置钳制），本判定为视口极端变化等场景的规则完备性兜底 */
+        if (CONFIG.combat.enemyOffscreenFireBlock && (b.x < 0 || b.x > R.W || b.y < 0 || b.y > R.H)) {
+          toCooldown(b); break;
+        }
         const n = Utils.randInt(cfg.volleyMin, cfg.volleyMax);
         const speed = cfg.volleySpeed + cfg.volleySpeedPerIndex * b.bossIndex;
         const dmg = cfg.volleyDamage + cfg.volleyDamagePerIndex * b.bossIndex;
         for (let i = 0; i < n; i++) {
           const a = b.volleyAngle - cfg.volleyHalfAngle + (2 * cfg.volleyHalfAngle) * (i / (n - 1));
-          World.spawnBullet('enemy', b.x, b.y, a, speed, dmg, 6, 'boss', 6);
+          World.spawnBullet('enemy', b.x, b.y, a, speed, dmg, 6, 'boss', cfg.volleyLife); // 弹幕寿命参数化引用（design D5）
         }
         toCooldown(b);
         break;
@@ -1557,15 +2097,18 @@ GAME.BossAI = (function () {
  * LevelGen 模块：关卡生成（成长曲线 + 四边生成 + 分批入场 + 清关检测）
  * ============================================================ */
 GAME.LevelGen = (function () {
-  const L = { level: 0, pendingQueue: [], spawnTimer: 0 };
+  const L = { level: 0, pendingQueue: [], spawnTimer: 0, fireGraceT: 0 };
 
-  function reset() { L.level = 0; L.pendingQueue.length = 0; L.spawnTimer = 0; }
+  function reset() { L.level = 0; L.pendingQueue.length = 0; L.spawnTimer = 0; L.fireGraceT = 0; }
 
   /* 开启新关卡：Boss 关只生成 Boss + "Boss 来袭"提示；普通关构造波次 */
   function startLevel(level, player) {
     L.level = level;
     L.pendingQueue.length = 0;
     L.spawnTimer = 0;
+    /* 开火缓冲启动（决策 D3）：置于 Boss 关提前 return 之前——普通关与 Boss 关统一生效；
+       缓冲期内敌方禁止发射新子弹（仅约束发射，不约束移动，spec 5.1.1 规则 6） */
+    L.fireGraceT = CONFIG.combat.fireGraceTime;
     if (level % 10 === 0) {
       GAME.BossAI.spawn(level);
       GAME.UI.showToast('Boss 来袭', 'boss');
@@ -1575,7 +2118,10 @@ GAME.LevelGen = (function () {
     buildWave(level, player);
   }
 
-  /* 类型组成权重随层数演化：低层以普通近战为主，逐层混入新类型 */
+  /* 类型组成权重随层数演化（elite_bullet_cull 修订后构成，design 决策 D1/D2）：
+     第 1~4 关普通近战 → 第 5 关起混入快速近战 → 第 8 关起纯近战压制（普通远程已配置驱动下线：
+     mix.rangedNormal = Infinity 使下方判定恒为 false，逻辑零改动）→ 第 10 关 Boss 关不执行本函数
+     → 第 11 关起精英远程混入（弹幕常态化）；ranged_normal 份额由剩余类型按既有权重自然承接 */
   function rollType(level) {
     const m = CONFIG.enemies.mix;
     const items = [{ key: 'melee_normal', weight: 1 }];
@@ -1616,6 +2162,7 @@ GAME.LevelGen = (function () {
 
   /* 每帧：分批补投队列 + 清关检测（场上敌人 + 队列 + Boss 全空 → 通知推进） */
   function tick(dt, player) {
+    L.fireGraceT = Math.max(0, L.fireGraceT - dt); // 帧首递减（供 EnemyAI/BossAI 当帧只读；界面冻结期间 tick 停摆、缓冲暂停递减）
     if (L.pendingQueue.length > 0) {
       L.spawnTimer -= dt;
       if (L.spawnTimer <= 0 && GAME.World.enemies.length < CONFIG.limits.maxEnemies) {
@@ -1655,16 +2202,20 @@ GAME.DropBuff = (function () {
     if (type === 'crit') return player.critRate >= caps.crit;
     if (type === 'pickup') return player.pickupRadius >= caps.pickup;
     if (type === 'instantKill') return player.instantKillRate >= caps.instantKill;
+    if (type === 'lifesteal') return player.lifestealRate >= caps.lifesteal; // 吸血软上限 30%（bow_staff_lifesteal spec 5.6.1 规则 5）
     if (type === 'maxhp' || type === 'regen') return false; // 无软上限
     console.warn('未知增益类型: ' + type);
     return false;
   }
 
-  /* 候选权重：秒杀按池取稀有权重（4/6），其余取定义权重或缺省基准 100（spec 6.2.3-5） */
+  /* 候选权重：秒杀/吸血按池取稀有权重（rare 模式），其余取定义权重或缺省基准 100（spec 6.2.3-5） */
   function weightOf(type, kind) {
     const choice = CONFIG.drops.choice;
     if (type === 'instantKill') {
       return kind === 'boss' ? choice.instantKillWeightBoss : choice.instantKillWeightNormal;
+    }
+    if (type === 'lifesteal') { // 吸血权重 8/10（bow_staff_lifesteal spec 5.6.1 规则 4，rare 同构先例）
+      return kind === 'boss' ? choice.lifestealWeightBoss : choice.lifestealWeightNormal;
     }
     return CONFIG.drops.buffs[type].weight || choice.baseWeight;
   }
@@ -1731,6 +2282,22 @@ GAME.DropBuff = (function () {
     if (Math.random() < CONFIG.drops.healPack.dropRate) {
       World.spawnDrop(e.x + jx(), e.y + jx(), 'heal', null, null);
     }
+    /* 路径 4：隐藏武器拳套（0.01%，独立判定，spec 5.2.1 规则 1/6——无保底无跨击杀累积） */
+    if (Math.random() < CONFIG.drops.gauntlet.enemyDropRate) {
+      World.spawnDrop(e.x + jx(), e.y + jx(), 'gauntlet', null, 'gauntlet');
+    }
+    /* 路径 5：隐藏武器神弓（0.1%，独立判定，bow_staff_lifesteal spec 5.1.1 规则 1） */
+    if (Math.random() < CONFIG.drops.bow.enemyDropRate) {
+      World.spawnDrop(e.x + jx(), e.y + jx(), 'bow', null, 'bow');
+    }
+    /* 路径 6：隐藏武器法杖（0.1%，独立判定，spec 5.1.1 规则 1） */
+    if (Math.random() < CONFIG.drops.staff.enemyDropRate) {
+      World.spawnDrop(e.x + jx(), e.y + jx(), 'staff', null, 'staff');
+    }
+    /* 路径 7：吸血增益（0.5%，独立判定，small 档——复用既有 buff 通道与 applyBuff 全链路，spec 5.6.1 规则 2） */
+    if (Math.random() < CONFIG.drops.lifesteal.enemyDropRate) {
+      World.spawnDrop(e.x + jx(), e.y + jx(), 'buff', 'small', 'lifesteal');
+    }
   }
   /* Boss 必定掉落武器（高品质增益改为二选一界面发放，spec 5.2.1 规则 1/2） */
   function spawnBossWeaponDrop(b) {
@@ -1751,6 +2318,9 @@ GAME.DropBuff = (function () {
         drops[i] = drops[drops.length - 1]; drops.pop(); // swap-remove 后再结算
         if (d.kind === 'buff') applyBuff(player, d.tier, d.payload);
         else if (d.kind === 'weapon') pickupWeapon(player, d.payload);
+        else if (d.kind === 'gauntlet') pickupWeapon(player, d.payload); // 拳套完全复用既有武器拾取通道（决策 D13）
+        else if (d.kind === 'bow') pickupWeapon(player, d.payload);     // 神弓同构复用（bow_staff_lifesteal D11）
+        else if (d.kind === 'staff') pickupWeapon(player, d.payload);   // 法杖同构复用（D11）
         else if (d.kind === 'exp') { // 经验球：累加经验并触发升级结算（死亡守卫在 gainExp 内）
           GAME.AudioSys.play('expOrb');
           GAME.UI.showToast('获得经验 +' + CONFIG.growth.expOrbValue, 'buff');
@@ -1808,6 +2378,9 @@ GAME.DropBuff = (function () {
     player.critRate = Math.min(bs.crit ? bs.crit.value : 0, caps.crit);
     /* 秒杀概率：与 critRate 同构的线性累加 + 软上限钳制（spec 6.3.1，上限 10% 为决策 D） */
     player.instantKillRate = Math.min(bs.instantKill ? bs.instantKill.value : 0, caps.instantKill);
+    /* 吸血比例：同构线性累加 + 软上限 30% 钳制（bow_staff_lifesteal spec 6.6.3；lifestealRate 恒被
+       全量重算赋值——startRun 初始化 0、每次增益变化刷新，无增量漂移） */
+    player.lifestealRate = Math.min(bs.lifesteal ? bs.lifesteal.value : 0, caps.lifesteal);
     player.regen = bs.regen ? bs.regen.value : 0;
     player.pickupRadius = Math.min(CONFIG.player.pickupRadius + (bs.pickup ? bs.pickup.value : 0), caps.pickup);
     /* 最大生命特例：buffHpAdded 语义扩展为"全部非基础来源（增益+升级+队友）已入账量"，
@@ -1825,13 +2398,13 @@ GAME.DropBuff = (function () {
   function pickupWeapon(player, wid) {
     const def = CONFIG.weapons[wid];
     if (!def) { console.warn('未知武器: ' + wid); return; }
-    GAME.AudioSys.play('pickup');
+    GAME.AudioSys.play(def.hidden ? (def.sfxGet || 'gauntletGet') : 'pickup'); // 隐藏武器专属音效（D15 缺省键：bow/staff 各配 sfxGet，拳套向后兼容）
     let empty = -1;
     for (let i = 0; i < player.slots.length; i++) { if (!player.slots[i]) { empty = i; break; } }
     if (empty >= 0) {
       player.slots[empty] = { def: def, cooldownT: def.cooldown };
       GAME.Game.addUsedWeapon(wid);
-      GAME.UI.showToast('获得武器：' + def.name, 'buff');
+      GAME.UI.showToast(def.hidden ? '获得隐藏武器：' + def.name : '获得武器：' + def.name, 'buff'); // 隐藏武器专属文案
       GAME.UI.refreshWeapons(player);
     } else {
       GAME.Game.requestWeaponReplace(def); // 已双持 → 暂停战斗弹出替换/放弃界面
@@ -2063,6 +2636,12 @@ GAME.Render = (function () {
         color = CONFIG.colors.healPack; glowKey = 'pink'; size = 11;
       } else if (d.kind === 'mate') {
         color = CONFIG.colors.mateDrop; glowKey = 'ice'; size = 12;
+      } else if (d.kind === 'gauntlet') {
+        color = CONFIG.colors.gauntletDrop; glowKey = 'magenta'; size = 12;
+      } else if (d.kind === 'bow') {
+        color = CONFIG.colors.bowDrop; glowKey = 'sunset'; size = 13;
+      } else if (d.kind === 'staff') {
+        color = CONFIG.colors.staffDrop; glowKey = 'purple'; size = 13;
       } else {
         color = CONFIG.colors.weaponDrop;
         glowKey = 'purple';
@@ -2109,6 +2688,56 @@ GAME.Render = (function () {
         ctx.closePath(); ctx.fill(); ctx.stroke();
         ctx.fillStyle = '#ffffff';
         ctx.beginPath(); ctx.arc(x, y, size * 0.3, 0, Math.PI * 2); ctx.fill();
+      } else if (d.kind === 'gauntlet') {
+        /* 拳套掉落：品红方形拳身 + 四指节圆点轮廓（与既有五类掉落物直接可分辨，spec 5.2.1 规则 4） */
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x - size * 0.85, y - size * 0.7, size * 1.7, size * 1.4, 5);
+        else ctx.rect(x - size * 0.85, y - size * 0.7, size * 1.7, size * 1.4);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.arc(x - size * 0.45 + i * size * 0.3, y - size * 0.25, size * 0.11, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.beginPath();
+        ctx.arc(x + size * 0.35, y + size * 0.3, size * 0.22, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (d.kind === 'bow') {
+        /* 神弓掉落：日落橙金弓形（弧形弓臂 + 弦线 + 中搭箭点，bow_staff_lifesteal spec 5.1.1 规则 5a） */
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.arc(x - size * 0.15, y, size * 0.95, -Math.PI * 0.42, Math.PI * 0.42); // 弓臂弧
+        ctx.stroke();
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+        const bx = x - size * 0.15;
+        const sx = Math.cos(Math.PI * 0.42) * size * 0.95, sy = Math.sin(Math.PI * 0.42) * size * 0.95;
+        ctx.beginPath();
+        ctx.moveTo(bx + sx, y - sy); ctx.lineTo(bx + sx, y + sy); // 弦线
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(bx - size * 0.55, y); ctx.lineTo(bx + size * 0.75, y);
+        ctx.lineTo(bx + size * 0.55, y - size * 0.16); ctx.lineTo(bx + size * 0.55, y + size * 0.16);
+        ctx.closePath(); ctx.fill(); // 搭在弦上的箭
+      } else if (d.kind === 'staff') {
+        /* 法杖掉落：紫罗兰长杖 + 顶端菱形宝石（与神弓弓形直接可分辨） */
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x - size * 0.1, y + size); ctx.lineTo(x - size * 0.1, y - size * 0.35); // 杆身
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x - size * 0.1, y - size); // 顶端菱形宝石
+        ctx.lineTo(x + size * 0.38, y - size * 0.55);
+        ctx.lineTo(x - size * 0.1, y - size * 0.25);
+        ctx.lineTo(x - size * 0.58, y - size * 0.55);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(x - size * 0.1, y - size * 0.58, size * 0.12, 0, Math.PI * 2); ctx.fill(); // 宝石核
       } else {
         /* 剑形武器掉落：竖长剑刃 + 横护手 */
         ctx.beginPath();
@@ -2120,7 +2749,7 @@ GAME.Render = (function () {
     }
   }
 
-  /* 攻击特效层：刀扇形残影 / 长枪突刺残影 / 手枪枪口闪光 */
+  /* 攻击特效层：刀扇形残影 / 长枪突刺残影 / 手枪枪口闪光 / 拳套冲击电弧 / 法阵爆发冲击与余韵 */
   function drawEffects() {
     const ctx = R.ctx;
     for (const ef of GAME.World.effects) {
@@ -2181,6 +2810,76 @@ GAME.Render = (function () {
         ctx.closePath(); ctx.fill();
         ctx.restore();
         ctx.globalAlpha = 1;
+      } else if (ef.kind === 'punch') {
+        /* 拳套首目标能量冲击：扇形残影展开渐隐（复用 slash 绘制模式，专属品红配色） */
+        const r = ef.extra.range * (0.5 + 0.5 * prog);
+        ctx.globalAlpha = k * 0.6;
+        ctx.fillStyle = ef.extra.color;
+        ctx.beginPath();
+        ctx.moveTo(ef.x, ef.y);
+        ctx.arc(ef.x, ef.y, r, ef.angle - ef.extra.half, ef.angle + ef.extra.half);
+        ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = k * 0.9;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(ef.x, ef.y, r, ef.angle - ef.extra.half, ef.angle + ef.extra.half);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      } else if (ef.kind === 'chain') {
+        /* 连锁电弧：起点→终点多段随机抖动折线 + 品红→白双层描线 + 发光；
+           dual 标记（双持叠加）时线宽加粗、亮度增强（可感知叠加信号，spec 5.5.1 规则 4） */
+        const x2 = ef.extra.x2, y2 = ef.extra.y2;
+        const segs = 5;
+        ctx.globalAlpha = k;
+        ctx.strokeStyle = CONFIG.colors.chainArc;
+        ctx.lineWidth = ef.extra.dual ? 4 : 2.5;
+        ctx.beginPath();
+        ctx.moveTo(ef.x, ef.y);
+        for (let i = 1; i < segs; i++) {
+          const t = i / segs;
+          const jx = (Math.random() - 0.5) * 14, jy = (Math.random() - 0.5) * 14;
+          ctx.lineTo(ef.x + (x2 - ef.x) * t + jx, ef.y + (y2 - ef.y) * t + jy);
+        }
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = ef.extra.dual ? 2 : 1.2;
+        ctx.globalAlpha = k * 0.85;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      } else if (ef.kind === 'burst') {
+        /* 法阵爆发冲击（bow_staff_lifesteal design 2.5.1 D）：双扩张环 + 内嵌 flash 中心闪光——
+           主环 R→1.35R 扩张收窄淡出（亮紫白），副环 0.7R→1.05R 反向内衬（双环夹击"爆发推离"层次）；
+           flash 子阶段：前 flashLife 0.09s 进度段近白实心圆快速收缩（视觉锤峰值） */
+        const Rr = ef.extra.radius;
+        const rr = Rr * (1 + 0.35 * prog);
+        ctx.globalAlpha = k * 0.95;
+        ctx.strokeStyle = CONFIG.colors.zoneBurst;
+        ctx.lineWidth = 6 - 4.5 * prog;
+        ctx.beginPath(); ctx.arc(ef.x, ef.y, rr, 0, Math.PI * 2); ctx.stroke();
+        const rr2 = Rr * (0.7 + 0.35 * prog);
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = k * 0.7;
+        ctx.beginPath(); ctx.arc(ef.x, ef.y, rr2, 0, Math.PI * 2); ctx.stroke();
+        /* flash：burst 寿命前 flashLife 比例段内绘制的内嵌子阶段 */
+        const flashFrac = CONFIG.fx.zone.flashLife / CONFIG.fx.burstLife;
+        if (prog < flashFrac) {
+          const fp = prog / flashFrac; // 0→1 收缩进度
+          ctx.globalAlpha = 1 - fp;
+          ctx.fillStyle = CONFIG.colors.zoneFlash;
+          ctx.beginPath(); ctx.arc(ef.x, ef.y, 26 - 20 * fp, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      } else if (ef.kind === 'burstAfter') {
+        /* 法阵余韵（design 2.5.1 E）：R×0.95 细描边环按 2 次呼吸节奏明灭后消散——
+           alpha × |sin(π × 进度 × 2)|（"能量耗尽后的残响"），纯视觉无判定 */
+        const Rr = ef.extra.radius * 0.95;
+        ctx.globalAlpha = k * 0.4 * Math.abs(Math.sin(Math.PI * prog * 2));
+        ctx.strokeStyle = CONFIG.colors.zoneWarn;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(ef.x, ef.y, Rr, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
       }
     }
   }
@@ -2202,7 +2901,7 @@ GAME.Render = (function () {
     ctx.shadowBlur = 0;
   }
   function drawEnemyBody(ctx, e, def, player) {
-    const fill = e.hitFlashT > 0 ? '#ffffff' : def.color; // 受击闪白
+    const fill = e.hitFlashT > 0 ? '#ffffff' : def.color; // 受击闪白（优先级高于灼烧罩染，既有短路在前）
     const ang = Math.atan2(player.y - e.y, player.x - e.x);
     ctx.save();
     ctx.translate(e.x, e.y);
@@ -2236,6 +2935,34 @@ GAME.Render = (function () {
       ctx.beginPath(); ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2); ctx.stroke();
     }
     ctx.restore();
+    /* 灼烧着火视觉（bow_staff_lifesteal D17，design 2.5.2 B）：罩染 + 脉冲外环两笔叠加——
+       burnT ≤ 0 或实体消亡自然消失（零同步代码）；不走 shadowBlur（60 敌全灼烧极端场景的分组绘制纪律） */
+    if (e.burnT > 0) drawBurnOverlay(ctx, e);
+  }
+  /* 灼烧罩染与脉冲外环（敌人/Boss 共用）：脉冲相位共用 performance.now() 时间源（视觉呼吸同步）；
+     刷新后 burnTickT 接近满值的前 refreshBoostT 秒内罩染增亮（"重新点燃"瞬时反馈，design 2.5.2 F） */
+  function drawBurnOverlay(ctx, t) {
+    const fxc = CONFIG.fx.burn;
+    const now = performance.now();
+    const half = 0.5 + 0.5 * Math.sin(now * 0.001 * fxc.tintHz * Math.PI * 2); // 0~1 呼吸
+    let alpha = fxc.tintPulseMin + (fxc.tintPulseMax - fxc.tintPulseMin) * half;
+    /* 刷新增亮窗口：burnTickT 刚重置（> interval - refreshBoostT）时罩染 ×refreshBoostMul 钳制 0.26 */
+    const bdef = CONFIG.weapons.bow;
+    if (t.burnTickT > bdef.burnInterval - fxc.refreshBoostT) {
+      alpha = Math.min(alpha * fxc.refreshBoostMul, 0.26);
+    }
+    /* 罩染：火色半透明圆（覆盖本体的大致范围——用外接圆近似各形状，一笔普通路径开销恒定） */
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = CONFIG.colors.burnTint;
+    ctx.beginPath(); ctx.arc(t.x, t.y, t.radius * 0.92, 0, Math.PI * 2); ctx.fill();
+    /* 脉冲外环：半径 r + 3 + 呼吸幅度的 1.5px 橙色细环（灼烧状态标识） */
+    ctx.globalAlpha = 0.5 + 0.25 * half;
+    ctx.strokeStyle = CONFIG.colors.burnRing;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.radius + 3 + fxc.ringBreath * half, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 
   /* Boss 层：金色八边形 + 强化发光 + 受击震动偏移 + 蓄力闪烁预警 */
@@ -2276,6 +3003,8 @@ GAME.Render = (function () {
     }
     ctx.closePath(); ctx.fill();
     ctx.restore();
+    /* 灼烧着火视觉：Boss 与普通敌人同规则（spec 5.3.1 规则 4 对 Boss 照常生效的视觉面） */
+    if (b.burnT > 0) drawBurnOverlay(ctx, b);
   }
 
   /* 玩家层：蓝紫圆形 + 朝向指示楔形 + 无敌帧半透明闪烁 */
@@ -2343,7 +3072,7 @@ GAME.Render = (function () {
     ctx.shadowBlur = 0;
   }
 
-  /* 子弹层：加法混合 + 渐变贴图；玩家子弹带渐细渐淡拖尾 */
+  /* 子弹层：加法混合 + 渐变贴图；玩家子弹带渐细渐淡拖尾；神弓箭矢带橙金拖尾与箭头弹体 */
   function drawBullets() {
     const ctx = R.ctx;
     ctx.globalCompositeOperation = 'lighter';
@@ -2362,14 +3091,45 @@ GAME.Render = (function () {
             ctx.stroke();
           }
         }
+      } else if (b.style === 'arrow') {
+        /* 箭矢拖尾：日落橙金渐细渐淡（对齐 player 分支逐段绘制模式，bow_staff_lifesteal D1 渲染面） */
+        const pts = b.trail, n = pts.length / 2;
+        if (n > 1) {
+          ctx.strokeStyle = CONFIG.colors.arrowBullet;
+          for (let i = 0; i < n - 1; i++) {
+            ctx.globalAlpha = ((i + 1) / n) * 0.55;
+            ctx.lineWidth = ((i + 1) / n) * 2.6;
+            ctx.beginPath();
+            ctx.moveTo(pts[i * 2], pts[i * 2 + 1]);
+            ctx.lineTo(pts[(i + 1) * 2], pts[(i + 1) * 2 + 1]);
+            ctx.stroke();
+          }
+        }
       }
-      const tex = R.glowTex[b.style === 'player' ? 'cyan' : (b.style === 'boss' ? 'gold' : (b.style === 'mate' ? 'ice' : 'orange'))];
+      const tex = R.glowTex[b.style === 'player' ? 'cyan' : (b.style === 'boss' ? 'gold' :
+        (b.style === 'mate' ? 'ice' : (b.style === 'arrow' ? 'sunset' : 'orange')))];
       const s = b.radius * 6;
       ctx.globalAlpha = 0.9;
       ctx.drawImage(tex, b.x - s / 2, b.y - s / 2, s, s);
       ctx.globalAlpha = 1;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath(); ctx.arc(b.x, b.y, b.radius * 0.55, 0, Math.PI * 2); ctx.fill();
+      if (b.style === 'arrow') {
+        /* 箭头弹体：沿速度方向的拉长菱形箭镞（区别于圆头子弹的目视判据） */
+        const ang = Math.atan2(b.vy, b.vx);
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(ang);
+        ctx.fillStyle = CONFIG.colors.arrowBullet;
+        ctx.beginPath();
+        ctx.moveTo(b.radius * 1.8, 0);
+        ctx.lineTo(-b.radius * 0.6, -b.radius * 0.55);
+        ctx.lineTo(-b.radius * 1.2, 0);
+        ctx.lineTo(-b.radius * 0.6, b.radius * 0.55);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+      } else {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(b.x, b.y, b.radius * 0.55, 0, Math.PI * 2); ctx.fill();
+      }
     }
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
@@ -2407,6 +3167,23 @@ GAME.Render = (function () {
         ctx.strokeText(f.text, f.x, f.y);
         ctx.fillStyle = CONFIG.colors.ikillText;
         ctx.fillText(f.text, f.x, f.y);
+      } else if (f.style === 'heal') {
+        /* 吸血回复：绿色数字，字号介于普通伤害与暴击之间（深色描边保证可读，spec 5.5.1 规则 3） */
+        ctx.font = 'bold 17px "Segoe UI", sans-serif';
+        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+        ctx.lineWidth = 3;
+        ctx.strokeText(f.text, f.x, f.y);
+        ctx.fillStyle = CONFIG.colors.healText;
+        ctx.fillText(f.text, f.x, f.y);
+      } else if (f.style === 'burn') {
+        /* 灼烧跳伤：橙色小字（13px，小于普攻 14px 的层级关系；五色可辨体系 design 2.5.2 D——
+           秒杀紫金 26/暴击金 22/heal 绿 17/普攻白 14/burn 橙 13） */
+        ctx.font = 'bold 13px "Segoe UI", sans-serif';
+        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+        ctx.lineWidth = 3;
+        ctx.strokeText(f.text, f.x, f.y);
+        ctx.fillStyle = CONFIG.colors.burnText;
+        ctx.fillText(f.text, f.x, f.y);
       } else {
         ctx.font = f.style === 'crit' ? 'bold 22px "Segoe UI", sans-serif' : 'bold 14px "Segoe UI", sans-serif';
         ctx.strokeStyle = 'rgba(0,0,0,0.7)';
@@ -2415,6 +3192,88 @@ GAME.Render = (function () {
         ctx.fillStyle = f.style === 'crit' ? CONFIG.colors.critText : CONFIG.colors.dmgText;
         ctx.fillText(f.text, f.x, f.y);
       }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* 法阵预警层（bow_staff_lifesteal D16，design 2.5.1 B/C）：以 prog = 1 - t/maxT 单一时间源驱动
+     常驻五层结构（绘制序 L5→L1→L2→L3→L4，后绘覆盖上层）——L5 地面微光淡入 → L1 虚线收缩环
+     （warnShrink×R 线性收缩至 1.0R，"触碰"主实环时刻与判定时刻严格同帧）→ L2 边界主实环
+     （判定范围唯一视觉真值，半径与判定半径同源 zone.radius）→ L3 符文刻度环（runes 刻度均布 ×
+     spinSpeed 旋转，末期亮度脉动）→ L4 中心聚能核（膨胀渐亮，末期短促闪缩）；
+     双持第六环（growthRate === 2 判据）：dualInnerScale×R 反向旋转第二符文环（双层嵌套目视判据）；
+     法阵实体当帧移除后五层绘制自然终止（零过渡代码）；<=3 实体 × 6 路径/帧开销与敌人绘制同级 */
+  function drawZones() {
+    const zones = GAME.World.zones;
+    if (zones.length === 0) return;
+    const ctx = R.ctx, zc = CONFIG.fx.zone, C = CONFIG.colors;
+    const now = performance.now();
+    for (const z of zones) {
+      const Rr = z.radius;
+      const prog = 1 - z.t / z.maxT; // 0 → 1
+      /* L5 地面微光：radial 渐变（中心 glowAlpha × 淡入系数 → 外沿 0） */
+      const gl = ctx.createRadialGradient(z.x, z.y, 0, z.x, z.y, Rr * 0.95);
+      const ga = zc.glowAlpha * (0.3 + 0.7 * prog);
+      gl.addColorStop(0, C.zoneWarn);
+      gl.addColorStop(1, 'rgba(167,139,255,0)');
+      ctx.globalAlpha = ga;
+      ctx.fillStyle = gl;
+      ctx.beginPath(); ctx.arc(z.x, z.y, Rr * 0.95, 0, Math.PI * 2); ctx.fill();
+      /* L1 虚线收缩环：1.22R → 1.0R 线性收缩 + 虚线沿收缩方向流动 + 线宽渐增 */
+      const r1 = Rr * (zc.warnShrink - (zc.warnShrink - 1) * prog);
+      ctx.globalAlpha = 0.35 + 0.55 * prog;
+      ctx.strokeStyle = C.zoneWarn;
+      ctx.lineWidth = 2 + 1.5 * prog;
+      ctx.setLineDash([6, 8]);
+      ctx.lineDashOffset = -prog * 40;
+      ctx.beginPath(); ctx.arc(z.x, z.y, r1, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+      /* L2 边界主实环：静止边界 + alpha 呼吸（末期最亮）+ 内侧 8px 渐变填充 */
+      ctx.globalAlpha = 0.55 + 0.15 * Math.sin(prog * Math.PI * 2);
+      ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.arc(z.x, z.y, Rr, 0, Math.PI * 2); ctx.stroke();
+      const inner = ctx.createRadialGradient(z.x, z.y, Rr - 8, z.x, z.y, Rr);
+      inner.addColorStop(0, 'rgba(167,139,255,0)');
+      inner.addColorStop(1, C.zoneWarn);
+      ctx.globalAlpha = 0.10;
+      ctx.fillStyle = inner;
+      ctx.beginPath(); ctx.arc(z.x, z.y, Rr, 0, Math.PI * 2); ctx.fill();
+      /* L3 符文刻度环：runes 刻度均布 + 整环旋转 + prog ≥ 0.6 亮度脉动（符文逐个"亮起"） */
+      const r3 = Rr * 0.82;
+      const spin = now * 0.001 * zc.spinSpeed;
+      let runeAlpha = 0.4 + 0.6 * prog;
+      if (prog >= 0.6) runeAlpha *= 0.7 + 0.3 * Math.sin(now * 0.02);
+      ctx.globalAlpha = runeAlpha;
+      ctx.lineWidth = 2;
+      for (let i = 0; i < zc.runes; i++) {
+        const a = spin + i * Math.PI * 2 / zc.runes;
+        const rx = z.x + Math.cos(a) * r3, ry = z.y + Math.sin(a) * r3;
+        ctx.beginPath(); ctx.arc(rx, ry, 2, 0, Math.PI * 2); ctx.fill(); // 4px 短弧刻度以小圆近似
+      }
+      /* 双持第六环（D7 growthRate === 2 判据）：0.62R 反向旋转第二符文环（6 刻度） */
+      if (z.growthRate === 2) {
+        const r6 = Rr * zc.dualInnerScale;
+        const spin2 = -now * 0.001 * zc.spinSpeed;
+        ctx.globalAlpha = runeAlpha * 0.85;
+        for (let i = 0; i < zc.dualRunes; i++) {
+          const a = spin2 + i * Math.PI * 2 / zc.dualRunes;
+          const rx = z.x + Math.cos(a) * r6, ry = z.y + Math.sin(a) * r6;
+          ctx.beginPath(); ctx.arc(rx, ry, 1.8, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 0.35 + 0.3 * prog;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(z.x, z.y, r6, 0, Math.PI * 2); ctx.stroke();
+      }
+      /* L4 中心聚能核：1.5 → coreMaxR 膨胀渐亮 + prog ≥ 0.85 短促闪缩（半径 ±8%）+ 亮色描边预演爆发色相 */
+      let coreR = 1.5 + (zc.coreMaxR - 1.5) * prog;
+      if (prog >= 0.85) coreR *= 1 + 0.08 * Math.sin(now * 0.06);
+      ctx.globalAlpha = 0.4 + 0.55 * prog;
+      ctx.fillStyle = C.zoneWarn;
+      ctx.beginPath(); ctx.arc(z.x, z.y, coreR, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 0.9;
+      ctx.strokeStyle = C.zoneBurst;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(z.x, z.y, coreR + 2, 0, Math.PI * 2); ctx.stroke();
     }
     ctx.globalAlpha = 1;
   }
@@ -2436,6 +3295,7 @@ GAME.Render = (function () {
     ctx.lineWidth = 2;
     ctx.strokeRect(1, 1, W - 2, H - 2);
     drawDrops();
+    drawZones(); // 法阵预警（地面附着层，不遮挡敌人本体，design 2.5.1 B 绘制顺序）
     drawEffects();
     if (player) drawEnemies(player);
     drawBoss();
@@ -2475,25 +3335,10 @@ GAME.UI = (function () {
       toastLayer: $('toast-layer'), weaponCards: $('weapon-cards'),
       bestRecord: $('best-record'), replaceInfo: $('replace-info'),
       overStats: $('over-stats'), overRecord: $('over-record'),
-      buffchoiceTitle: $('buffchoice-title'), buffCards: $('buff-cards')
+      buffchoiceTitle: $('buffchoice-title'), buffCards: $('buff-cards'),
+      redeemPanel: $('redeem-panel'), redeemInput: $('redeem-input')
     };
-    /* 武器三选一卡片（数据全部来自 CONFIG） */
-    const order = ['knife', 'spear', 'pistol'];
-    for (const wid of order) {
-      const def = CONFIG.weapons[wid];
-      const card = document.createElement('div');
-      card.className = 'weapon-card';
-      card.dataset.weapon = wid;
-      const typeText = def.type === 'melee_arc' ? '近战 · 扇形' : (def.type === 'melee_thrust' ? '近战 · 突刺' : '远程 · 子弹');
-      const rangeText = def.type === 'ranged' ? '射程 远' : '范围 ' + def.range;
-      card.innerHTML =
-        '<h3>' + def.name + '</h3>' +
-        '<span class="wcard-type">' + typeText + '</span>' +
-        '<div class="wcard-desc">' + def.desc + '</div>' +
-        '<div class="wcard-stats">伤害 ' + def.damage + ' · 冷却 ' + def.cooldown + 's · ' + rangeText + '</div>';
-      card.addEventListener('click', function () { GAME.Game.startRun(wid); });
-      el.weaponCards.appendChild(card);
-    }
+    buildWeaponCards(); // 武器选择卡片动态构建（基础三武器 + 兑换解锁后追加拳套，spec 5.6.1 规则 3）
     /* 界面按钮事件绑定 */
     $('btn-start').addEventListener('click', function () { GAME.Game.beginSelect(); });
     $('btn-resume').addEventListener('click', function () { GAME.Game.togglePause(); });
@@ -2503,6 +3348,52 @@ GAME.UI = (function () {
     $('btn-replace-discard').addEventListener('click', function () { GAME.Game.confirmWeaponReplace('discard'); });
     $('btn-restart-over').addEventListener('click', function () { GAME.Game.restart(); });
     $('btn-pause').addEventListener('click', function () { GAME.Game.togglePause(); });
+    /* 兑换码交互绑定（spec 5.6.1 规则 1/8）：入口展开/收起 + 提交分发四类反馈 + 输入长度约束 */
+    el.redeemInput.maxLength = CONFIG.redeem.inputMaxLength;
+    $('btn-redeem').addEventListener('click', function () { el.redeemPanel.classList.toggle('on'); });
+    $('btn-redeem-close').addEventListener('click', function () {
+      el.redeemPanel.classList.remove('on');
+      el.redeemInput.value = '';
+    });
+    $('btn-redeem-ok').addEventListener('click', function () {
+      const r = GAME.Game.redeemCode(el.redeemInput.value);
+      if (r.status === 'success') {
+        showToast(r.msg, 'redeem');           // 专属品金渐变样式 + 专属音效（反馈强度最高，决策 D10）
+        GAME.AudioSys.play(CONFIG.redeem.sfx);
+        el.redeemPanel.classList.remove('on'); // 成功后收起面板并清空输入
+        el.redeemInput.value = '';
+      } else {
+        showToast(r.msg, 'buff');             // 空/无效/已兑换：普通样式无音效（spec 5.6.1 规则 8a）
+      }
+    });
+  }
+
+  /* 武器选择卡片动态构建（spec 5.6.1 规则 3/4）：全量重建天然禁止重复卡片（兑换幂等，spec 4.2.8）；
+     基础三武器 + redeemed 时追加全部三把隐藏武器（三选一→六选一，bow_staff_lifesteal D13 语义升级——
+     老玩家 redeemed=true 读档即六选一，零迁移零重兑）；隐藏武器卡附加专属类与"隐藏"角标 */
+  function buildWeaponCards() {
+    el.weaponCards.innerHTML = '';
+    const order = ['knife', 'spear', 'pistol'];
+    if (GAME.Storage.loadRecord().redeemed) order.push('gauntlet', 'bow', 'staff');
+    for (const wid of order) {
+      const def = CONFIG.weapons[wid];
+      if (!def) { console.warn('未知武器: ' + wid); continue; } // 防御性跳过（正常配置不触发）
+      const card = document.createElement('div');
+      card.className = 'weapon-card' + (def.hidden ? ' hidden-weapon' : '');
+      card.dataset.weapon = wid;
+      const typeText = def.type === 'melee_arc' ? '近战 · 扇形' : (def.type === 'melee_thrust' ? '近战 · 突刺' :
+        (def.type === 'melee_chain' ? '近战 · 连锁' : (def.type === 'ranged_multi' ? '远程 · 多向' :
+          (def.type === 'zone_cast' ? '远程 · 法阵' : '远程 · 子弹'))));
+      const rangeText = def.type === 'ranged' ? '射程 远' : (def.type === 'zone_cast' ? '半径 ' + def.zoneRadius : '范围 ' + def.range);
+      card.innerHTML =
+        (def.hidden ? '<span class="wcard-hidden">隐藏</span>' : '') +
+        '<h3>' + def.name + '</h3>' +
+        '<span class="wcard-type">' + typeText + '</span>' +
+        '<div class="wcard-desc">' + def.desc + '</div>' +
+        '<div class="wcard-stats">伤害 ' + def.damage + ' · 冷却 ' + def.cooldown + 's · ' + rangeText + '</div>';
+      card.addEventListener('click', function () { GAME.Game.startRun(wid); });
+      el.weaponCards.appendChild(card);
+    }
   }
 
   function showScreen(name) {
@@ -2519,9 +3410,19 @@ GAME.UI = (function () {
 
   /* 武器替换界面：新武器与两槽现有武器对比 + 三选一 */
   function showReplace(newDef, slots) {
+    /* 类型文案行（spec 5.5.1 规则 2）：六武器同口径，与武器选择卡片 typeText 一致（bow_staff_lifesteal spec 5.7.1 规则 2a） */
+    function typeTextOf(def) {
+      if (def.type === 'melee_arc') return '近战 · 扇形';
+      if (def.type === 'melee_thrust') return '近战 · 突刺';
+      if (def.type === 'melee_chain') return '近战 · 连锁';
+      if (def.type === 'ranged_multi') return '远程 · 多向';
+      if (def.type === 'zone_cast') return '远程 · 法阵';
+      return '远程 · 子弹';
+    }
     function cardHtml(def, isSlot) {
       return '<div class="replace-card' + (isSlot ? ' slot-card' : '') + '">' +
         '<h4>' + def.name + (isSlot ? '' : '（新）') + '</h4>' +
+        '<span class="rcard-type">' + typeTextOf(def) + '</span>' +
         '<p>伤害 ' + def.damage + ' · 冷却 ' + def.cooldown + 's</p>' +
         '<p>' + def.desc + '</p></div>';
     }
@@ -2620,10 +3521,15 @@ GAME.UI = (function () {
 
   /* 武器槽显示刷新（事件级：获得/替换/切换武器时调用） */
   function refreshWeapons(p) {
+    /* 双持叠加标识（spec 5.5.1 规则 4）：两槽均为充能拳套时追加专属 class（品红发光边框），
+       任一槽非拳套时移除——玩家无需查阅文档即可感知叠加状态 */
+    const dualGauntlet = !!(p.slots[0] && p.slots[1] &&
+      p.slots[0].def.id === 'gauntlet' && p.slots[1].def.id === 'gauntlet');
     for (let i = 0; i < 2; i++) {
       const ws = p.slots[i];
       const slot = el.wslots[i];
       slot.classList.toggle('active', i === p.currentSlot && !!ws);
+      slot.classList.toggle('dual-gauntlet', dualGauntlet);
       slot.querySelector('.wslot-name').textContent = ws ? ws.def.name : '空';
       const sub = slot.querySelector('.wslot-sub');
       sub.textContent = ws ? ('伤害 ' + Math.floor(ws.def.damage * p.atkMul)) : '';
@@ -2642,6 +3548,7 @@ GAME.UI = (function () {
       const capped = GAME.DropBuff.isBuffCapped(p, type); // 单一真值源（与候选剔除共用）
       let text = def.name;
       if (type === 'instantKill') text = '秒杀概率 ' + fmt(st.value, true);
+      if (type === 'lifesteal') text = '吸血 ' + fmt(st.value, true); // 累计比例展示（bow_staff_lifesteal spec 5.7.1 规则 5a）
       html.push('<span class="buff-chip' + (capped ? ' capped' : '') + '">' + text + ' ×' + st.count + (capped ? '（上限）' : '') + '</span>');
     }
     el.buffBar.innerHTML = html.join('');
@@ -2669,7 +3576,8 @@ GAME.UI = (function () {
 
   return { init: init, showScreen: showScreen, hideAllScreens: hideAllScreens, showHUD: showHUD,
     showStart: showStart, showReplace: showReplace, showGameOver: showGameOver, showBuffChoice: showBuffChoice,
-    updateHUD: updateHUD, refreshWeapons: refreshWeapons, refreshBuffs: refreshBuffs, refreshMates: refreshMates, showToast: showToast };
+    updateHUD: updateHUD, refreshWeapons: refreshWeapons, refreshBuffs: refreshBuffs, refreshMates: refreshMates,
+    buildWeaponCards: buildWeaponCards, showToast: showToast };
 })();
 
 /* ============================================================
@@ -2682,7 +3590,8 @@ GAME.Game = (function () {
   const G = {
     state: 'BOOT', player: null, stats: null, pendingWeapon: null,
     replaceFrom: null, pausedFrom: null, clearT: 0, introT: 0, lastTs: 0, record: null,
-    buffChoiceKind: null, buffChoiceFrom: null // 增益选择：kind('normal'|'boss') + 冻结前状态（同 replaceFrom 生命周期模式）
+    buffChoiceKind: null, buffChoiceFrom: null, // 增益选择：kind('normal'|'boss') + 冻结前状态（同 replaceFrom 生命周期模式）
+    pendingBossChoice: false // Boss 二选一挂起标志：被 WEAPON_REPLACE 同帧拦截时置位，替换确认后补发（决策 D4）
   };
 
   /* ---------------- 初始化 ---------------- */
@@ -2748,7 +3657,9 @@ GAME.Game = (function () {
       /* 成长状态（局内临时，不入存档，spec 6.6.1）：等级/经验/升级收益/队友增益（追加于既有字段后） */
       level: CONFIG.growth.initialLevel, exp: 0,
       levelBonus: { atk: 0, aspd: 0, speed: 0, maxhp: 0 },
-      mateBonus: { atk: 0, aspd: 0, speed: 0, maxhp: 0 }
+      mateBonus: { atk: 0, aspd: 0, speed: 0, maxhp: 0 },
+      staffGrowth: 0,  // 法杖局内成长（bow_staff_lifesteal D4：每局归零、换枪/暂停保留、禁入存档与全局配置）
+      lifestealRate: 0 // 吸血增益通道（recalc 全量重算，rare 增益 lifesteal 累计比例，spec 5.6.1）
     };
     G.stats = { floor: 0, kills: 0, bossKills: 0, usedWeaponIds: [weaponId] };
     GAME.World.reset();
@@ -2818,19 +3729,27 @@ GAME.Game = (function () {
     GAME.UI.hideAllScreens();
     GAME.UI.refreshWeapons(G.player);
     G.state = G.replaceFrom || 'PLAYING'; // 恢复冻结前的战斗状态
+    G.replaceFrom = null; // 字段生命周期规范：使用后清理（消除残留瑕疵）
+    /* Boss 二选一挂起补发（决策 D4）：替换确认恢复战斗态后检查挂起标志——
+       补发点在状态恢复之后，此时状态为战斗系，requestBuffChoice 守卫必然通过 */
+    if (G.pendingBossChoice) {
+      G.pendingBossChoice = false;
+      requestBuffChoice('boss');
+    }
   }
 
   /* 请求增益选择（清关三选一 / Boss 二选一共用入口，spec 5.1.1 / 5.2.1）：
      状态守卫——仅战斗系状态可进入；GAME_OVER 时静默跳过（死亡结算优先于二选一，spec 5.2.3 场景 1）
      进入 BUFF_CHOICE 后主循环战斗态守卫集合天然不含该状态 → 战斗/计时/拾取全部冻结（零改动获得冻结） */
   function requestBuffChoice(kind) {
-    if (G.state !== 'PLAYING' && G.state !== 'LEVEL_INTRO' && G.state !== 'LEVEL_CLEAR') return;
-    if (!G.stats || !G.player) return;
+    if (G.state !== 'PLAYING' && G.state !== 'LEVEL_INTRO' && G.state !== 'LEVEL_CLEAR') return false;
+    if (!G.stats || !G.player) return false;
     G.buffChoiceKind = kind;
     G.buffChoiceFrom = G.state;
     G.state = 'BUFF_CHOICE';
     const candidates = GAME.DropBuff.rollCandidates(G.player, kind);
     GAME.UI.showBuffChoice(candidates, kind);
+    return true; // 返回值改造（决策 D4）：true=已切入 BUFF_CHOICE，false=被守卫拦截（供 onBossDeath 挂起补发判定）
   }
   /* 确认增益选择（卡片点击回调）：状态守卫防连点（spec 5.5.3 场景 2——首次生效即关闭界面）
      normal → 增益生效后直接进下一关（选择与进层原子衔接，spec 5.1.1 规则 3）
@@ -2838,14 +3757,15 @@ GAME.Game = (function () {
   function confirmBuffChoice(type) {
     if (G.state !== 'BUFF_CHOICE' || !G.buffChoiceKind) { console.warn('当前状态无待确认增益'); return; }
     const kind = G.buffChoiceKind;
+    const from = G.buffChoiceFrom; // 修复点：先保存冻结前状态（此前先置空后使用导致恢复值恒为 PLAYING，spec 5.1.1 规则 5）
     GAME.DropBuff.applyBuff(G.player, kind === 'boss' ? 'high' : 'small', type);
     G.buffChoiceKind = null;
-    G.buffChoiceFrom = null;
+    G.buffChoiceFrom = null; // 使用前置空（字段生命周期规范：进入时保存、确认时先读局部变量、再置空、最后使用）
     GAME.UI.hideAllScreens();
     if (kind === 'normal') {
       enterLevel(GAME.LevelGen.L.level + 1); // 三选一生效 → 自动进下一关
     } else {
-      G.state = G.buffChoiceFrom || 'PLAYING'; // 二选一生效 → 恢复冻结前战斗态
+      G.state = from || 'PLAYING'; // 二选一生效 → 用局部变量恢复冻结前准确战斗态
     }
   }
 
@@ -2855,6 +3775,7 @@ GAME.Game = (function () {
     G.player = null; G.stats = null; G.pendingWeapon = null;
     G.pausedFrom = null; G.replaceFrom = null;
     G.buffChoiceKind = null; G.buffChoiceFrom = null; // 增益选择状态清理（防残留污染下一局，spec 5.6.1 规则 2）
+    G.pendingBossChoice = false; // 挂起标志清理（防跨局残留，决策 D4）
     GAME.World.reset();
     GAME.LevelGen.reset();
     GAME.UI.refreshMates(null); // 队友统计清空（等级/经验/队友禁止跨局保留，spec 5.3.1 规则 9 / 5.5.1 规则 12）
@@ -2866,6 +3787,27 @@ GAME.Game = (function () {
 
   function addUsedWeapon(wid) {
     if (G.stats && G.stats.usedWeaponIds.indexOf(wid) < 0) G.stats.usedWeaponIds.push(wid);
+  }
+
+  /* 兑换码校验与发放（spec 5.6.1 规则 2/3/6/8）：全程本地校验零网络请求（spec 4.3.1）。
+     返回 { status, msg }——status ∈ 'success'|'empty'|'invalid'|'redeemed'：
+     空 → empty；trim+小写化精确匹配失败 → invalid；已兑换 → redeemed（幂等不重复发放）；
+     否则持久化 redeemed:true + 重建武器选择卡片（三选一→四选一）→ success。
+     持久化失败仅 console.warn 不阻断发放（隐私模式经既有内存降级当场生效，spec 5.6.3 场景 1） */
+  function redeemCode(code) {
+    const rc = CONFIG.redeem;
+    const input = String(code == null ? '' : code).trim();
+    if (!input) return { status: 'empty', msg: rc.msgEmpty };
+    if (input.toLowerCase() !== rc.code) return { status: 'invalid', msg: rc.msgInvalid };
+    const rec = GAME.Storage.loadRecord();
+    if (rec.redeemed === true) return { status: 'redeemed', msg: rc.msgRedeemed };
+    const result = GAME.Storage.saveRecord({
+      version: rec.version, bestFloor: rec.bestFloor, bestKills: rec.bestKills,
+      bestBossKills: rec.bestBossKills, redeemed: true
+    });
+    if (!result.ok) console.warn('兑换状态持久化失败（当场生效，刷新后需重新兑换）');
+    GAME.UI.buildWeaponCards(); // 全量重建四选一（天然禁止重复卡片，spec 4.2.8）
+    return { status: 'success', msg: rc.msgSuccess };
   }
 
   /* ---------------- 局内事件钩子 ---------------- */
@@ -2898,17 +3840,39 @@ GAME.Game = (function () {
       const off = CONFIG.drops.mate.spawnOffset;
       GAME.World.spawnDrop(b.x + Utils.rand(-off, off), b.y + Utils.rand(-off, off), 'mate', null, null);
     }
+    /* 拳套第四路掉落：Boss 1% 独立判定（v3 定稿，与必掉武器/队友/二选一三路相互独立，spec 5.2.1 规则 2）；
+       插入点在 requestBuffChoice 之前——保证掉落物生成先于界面冻结（冻结期间 DropBuff.update 停摆） */
+    if (Math.random() < CONFIG.drops.gauntlet.bossDropRate) {
+      const off = CONFIG.drops.gauntlet.spawnOffset;
+      GAME.World.spawnDrop(b.x + Utils.rand(-off, off), b.y + Utils.rand(-off, off), 'gauntlet', null, 'gauntlet');
+    }
+    /* 神弓第五路：Boss 5% 独立判定（bow_staff_lifesteal spec 5.1.1 规则 4a，与既有各路全部相互独立） */
+    if (Math.random() < CONFIG.drops.bow.bossDropRate) {
+      const off = CONFIG.drops.bow.spawnOffset;
+      GAME.World.spawnDrop(b.x + Utils.rand(-off, off), b.y + Utils.rand(-off, off), 'bow', null, 'bow');
+    }
+    /* 法杖第六路：Boss 30% 独立判定（spec 定稿，同次 Boss 死亡允许与神弓/拳套/队友同时爆出） */
+    if (Math.random() < CONFIG.drops.staff.bossDropRate) {
+      const off = CONFIG.drops.staff.spawnOffset;
+      GAME.World.spawnDrop(b.x + Utils.rand(-off, off), b.y + Utils.rand(-off, off), 'staff', null, 'staff');
+    }
     /* Boss 死亡瞬间先弹高品质增益二选一（先于武器拾取，spec 5.2.1 规则 3，决策 B）；
-       GAME_OVER 守卫在 requestBuffChoice 内部拦截同帧双死（spec 5.2.3 场景 1） */
-    requestBuffChoice('boss');
+       GAME_OVER 守卫在 requestBuffChoice 内部拦截同帧双死（spec 5.2.3 场景 1）；
+       被 WEAPON_REPLACE 同帧拦截（Boss 死亡同帧拾取武器已双持）时挂起补发，防二选一奖励静默丢失（决策 D4） */
+    if (!requestBuffChoice('boss')) G.pendingBossChoice = true;
     GAME.World.boss = null; // 召唤小怪仍存活时维持关卡未完成（清关判定含 minions）
   }
 
-  /* 清关事件（LevelGen.tick 检测到全空时调用，状态守卫防重复推进） */
+  /* 清关事件（LevelGen.tick 检测到全空时调用）——清弹与状态切换解耦为两个独立动作（决策 D1/D2）：
+     动作一（清弹）无条件执行——清关判定成立即触发，与当前流程状态无关，同帧界面并发
+     （WEAPON_REPLACE/BUFF_CHOICE）时不再被守卫拦截，重复调用幂等（无子弹时为空遍历，spec 5.1.1 规则 1/2）；
+     动作二（状态切换）保留守卫——界面冻结态时不切换（待确认恢复后下一帧清关判定自然重触发），
+     LEVEL_CLEAR 态时拦截防重复推进（spec 5.1.1 规则 2a） */
   function onLevelClear() {
+    /* 动作一：清弹（仅受紧急回退开关约束） */
+    if (CONFIG.combat.clearEnemyBulletsOnClear) GAME.World.clearEnemyBullets();
+    /* 动作二：状态切换（保留守卫） */
     if (G.state === 'PLAYING' || G.state === 'LEVEL_INTRO') {
-      /* 清关清弹：与清关判定同帧原子生效，清除全部残留敌方子弹（禁止跨关伤害，spec 5.1.1 规则 2/5） */
-      if (CONFIG.combat.clearEnemyBulletsOnClear) GAME.World.clearEnemyBullets();
       G.state = 'LEVEL_CLEAR';
       G.clearT = CONFIG.ui.clearDelay; // 0.8s 后层数+1 自动推进
     }
@@ -2927,7 +3891,8 @@ GAME.Game = (function () {
       version: CONFIG.saveVersion,
       bestFloor: Math.max(rec.bestFloor, G.stats.floor),
       bestKills: Math.max(rec.bestKills, G.stats.kills),
-      bestBossKills: Math.max(rec.bestBossKills, G.stats.bossKills)
+      bestBossKills: Math.max(rec.bestBossKills, G.stats.bossKills),
+      redeemed: rec.redeemed // 透传兑换状态（防死亡结算写档抹除，design 2.2.2 关键联动点）
     };
     const result = GAME.Storage.saveRecord(finalRecord);
     if (!result.ok) console.warn('最高纪录保存失败（不影响结算流程）');
@@ -2993,7 +3958,9 @@ GAME.Game = (function () {
     if (p.regen > 0) p.hp = Math.min(p.hp + p.regen * dt, p.maxHp);
     p.invincibleT = Math.max(0, p.invincibleT - dt);
 
-    GAME.Combat.update(dt, p, input);       // 冷却递减 + 攻击执行
+    GAME.Combat.update(dt, p, input);       // 冷却递减 + 攻击执行（含 bow/staff 分派）
+    GAME.Combat.updateZones(dt, p);         // 法阵倒计时与爆发结算（bow_staff_lifesteal，冻结态随守卫自动停摆）
+    GAME.Combat.updateBurn(dt, p);          // 灼烧逐帧结算与着火粒子发射（同上冻结停摆）
     GAME.EnemyAI.update(dt, p);             // 敌人 AI
     GAME.BossAI.update(dt, p);              // Boss 行为状态机
     GAME.Mates.update(dt, p);               // 队友跟随与协战（当帧发射的子弹立即进入命中管线）
@@ -3009,7 +3976,8 @@ GAME.Game = (function () {
   return { G: G, init: init, beginSelect: beginSelect, startRun: startRun, switchWeapon: switchWeapon,
     togglePause: togglePause, requestWeaponReplace: requestWeaponReplace, confirmWeaponReplace: confirmWeaponReplace,
     requestBuffChoice: requestBuffChoice, confirmBuffChoice: confirmBuffChoice,
-    restart: restart, addUsedWeapon: addUsedWeapon, onEnemyDeath: onEnemyDeath, onBossDeath: onBossDeath,
+    restart: restart, addUsedWeapon: addUsedWeapon, redeemCode: redeemCode,
+    onEnemyDeath: onEnemyDeath, onBossDeath: onBossDeath,
     onLevelClear: onLevelClear, onPlayerDeath: onPlayerDeath };
 })();
 
